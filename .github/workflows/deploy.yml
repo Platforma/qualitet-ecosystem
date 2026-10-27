@@ -1,4 +1,4 @@
-name: Deploy
+name: Qualitet Deploy
 
 on:
   push:
@@ -6,14 +6,33 @@ on:
       - main
 
 jobs:
+
   build:
 
     runs-on: ubuntu-latest
 
     steps:
 
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
 
-      - run: npm install
+      - name: Install
+        run: npm install
+
+  deploy:
+
+    needs: build
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Trigger Render Deploy
+
+        run: |
+          curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"
