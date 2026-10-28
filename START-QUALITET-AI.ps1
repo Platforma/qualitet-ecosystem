@@ -1,27 +1,44 @@
 Clear-Host
 
 Write-Host ""
-Write-Host "================================="
-Write-Host "QUALITET AI LOADER"
-Write-Host "================================="
+Write-Host "QUALITET AI MEMORY"
 Write-Host ""
 
-if (Test-Path ".\OLLAMA_MASTER_PROMPT.txt") {
+$Prompt  = Get-Content .\OLLAMA_MASTER_PROMPT.txt -Raw
+$Context = Get-Content .\PROJECT_CONTEXT.md -Raw
+$Rules   = Get-Content .\PROJECT_RULES.md -Raw
+$History = Get-Content .\PROJECT_HISTORY.md -Raw
 
-    Write-Host "✅ MASTER PROMPT znaleziony"
+$All = @"
 
-} else {
+$Prompt
 
-    Write-Host "❌ Brak OLLAMA_MASTER_PROMPT.txt"
-    exit
+================================================
+PROJECT CONTEXT
+================================================
 
-}
+$Context
+
+================================================
+PROJECT RULES
+================================================
+
+$Rules
+
+================================================
+PROJECT HISTORY
+================================================
+
+$History
+
+"@
+
+$All | Set-Content AI_CONTEXT.txt
 
 Write-Host ""
-
-Write-Host "Dostępne modele:"
-ollama list
-
+Write-Host "AI_CONTEXT.txt utworzony"
+Write-Host ""
+Write-Host "Skopiuj AI_CONTEXT.txt do Ollamy"
 Write-Host ""
 
-ollama run phi3
+notepad AI_CONTEXT.txt
