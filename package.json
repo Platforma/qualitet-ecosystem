@@ -1,9 +1,5 @@
 {
-  "name": "qualitet-ecosystem",
-  "private": true,
-  "version": "1.0.0",
-  "scripts": {
-    "backend": "cd backend && npm run dev",
-    "start": "npm run backend"
-  }
+  "name":"qualitet-ecosystem",
+  "private":true,
+  "version":"1.0.0"
 }

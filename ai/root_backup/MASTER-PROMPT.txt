@@ -1,0 +1,19 @@
+QUALITET ECOSYSTEM
+
+Owner Studio
+CRM
+Marketplace
+AI Qualitet
+Discord
+SEO
+Google Ads
+Meta Ads
+TikTok Ads
+Stripe
+Ollama
+
+Preferowany model:
+phi3
+
+Backup przed kad zmian.
+Diff przed kad zmian.
