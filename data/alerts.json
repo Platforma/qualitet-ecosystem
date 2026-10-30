@@ -1,9 +1,9 @@
-{
+﻿{
   "alerts": [
     {
       "id": 1,
       "severity": "INFO",
-      "message": "Henryk Command Center uruchomione",
+      "message": "Henryk Command Center ONLINE",
       "date": "2026-10-24"
     }
   ]
