@@ -1,4 +1,8 @@
 
+.env
+.env.*
+!.env.example
+
 ai_backup_*
 
 ai_backup_*
