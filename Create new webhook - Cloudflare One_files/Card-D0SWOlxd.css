@@ -1,0 +1,1 @@
+@keyframes animation1{0%{width:100%}50%{width:75%}to{width:100%}}@keyframes animation2{0%{width:100%}50%{width:65%}to{width:100%}}.loading-line-1{animation:1.75s ease-in-out infinite animation1}.loading-line-2{animation:1.75s ease-in-out infinite animation2}

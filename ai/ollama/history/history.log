@@ -1,0 +1,86 @@
+
+
+10/28/2026 21:49:15
+
+MODEL: phi3
+
+PROMPT: ai\ollama\prompts\BACKEND_PROMPT.md
+
+OUTPUT: ai\ollama\outputs\BACKEND_V2.md
+
+
+
+
+10/28/2026 21:55:40
+
+MODEL: phi3
+
+PROMPT: ai\ollama\prompts\DATABASE_PROMPT.md
+
+OUTPUT: ai\ollama\outputs\DATABASE_V2.md
+
+
+
+
+10/28/2026 21:56:48
+
+MODEL: phi3
+
+PROMPT: ai\ollama\prompts\OWNER_STUDIO_PROMPT.md
+
+OUTPUT: ai\ollama\outputs\OWNER_STUDIO_V2.md
+
+
+
+
+10/28/2026 22:11:00
+
+MODEL: phi3
+
+PROMPT: ai\ollama\prompts\BACKEND_PROMPT.md
+
+OUTPUT: ai\ollama\outputs\BACKEND_V2.md
+
+
+
+
+10/28/2026 22:12:27
+
+MODEL: phi3
+
+PROMPT: ai\ollama\prompts\DATABASE_PROMPT.md
+
+OUTPUT: ai\ollama\outputs\DATABASE_V2.md
+
+
+
+
+10/28/2026 22:13:02
+
+MODEL: phi3
+
+PROMPT: ai\ollama\prompts\OWNER_STUDIO_PROMPT.md
+
+OUTPUT: ai\ollama\outputs\OWNER_STUDIO_V2.md
+
+
+
+
+10/28/2026 23:35:09
+
+MODEL: phi3
+
+PROMPT: ai\ollama\prompts\BACKEND_PROMPT.md
+
+OUTPUT: ai\ollama\outputs\BACKEND_V2.md
+
+
+10/29/2026 08:50:08 | ai\ollama\prompts\BACKEND_PROMPT.md -> ai\ollama\outputs\BACKEND_V2.md
+10/29/2026 09:01:56 | ai\ollama\prompts\BACKEND_PROMPT.md -> ai\ollama\outputs\BACKEND_V2.md
+10/29/2026 09:06:59 | ai\ollama\prompts\DATABASE_PROMPT.md -> ai\ollama\outputs\DATABASE_V2.md
+10/29/2026 09:12:09 | ai\ollama\prompts\OWNER_STUDIO_PROMPT.md -> ai\ollama\outputs\OWNER_STUDIO_V2.md
+10/29/2026 09:36:59 | ai\ollama\prompts\MONGODB_MODELS_PROMPT.md -> ai\ollama\outputs\MONGODB_MODELS_V1.md
+10/29/2026 11:07:17 | ai\ollama\prompts\BACKEND_PROMPT.md -> ai\ollama\outputs\BACKEND_V2.md
+10/29/2026 11:10:16 | ai\ollama\prompts\DATABASE_PROMPT.md -> ai\ollama\outputs\DATABASE_V2.md
+10/29/2026 11:14:24 | ai\ollama\prompts\OWNER_STUDIO_PROMPT.md -> ai\ollama\outputs\OWNER_STUDIO_V2.md
+10/29/2026 11:37:05 | ai\ollama\prompts\MONGODB_MODELS_PROMPT.md -> ai\ollama\outputs\MONGODB_MODELS_V1.md

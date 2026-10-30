@@ -1,17 +1,12 @@
-name: Build Check
+name: Deploy
 
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Test
-        run: echo "Qualitet Ecosystem OK"
+      - name: Deploy
+        run: echo "Deploy OK"

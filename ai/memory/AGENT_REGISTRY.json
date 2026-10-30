@@ -1,0 +1,34 @@
+{
+  "version": "1.0",
+  "orchestrator": "AI_QUALITET",
+  "agents": [
+    {
+      "name": "AI_QUALITET",
+      "role": "orchestrator"
+    },
+    {
+      "name": "AI_DEVELOPER",
+      "role": "developer"
+    },
+    {
+      "name": "AI_GRAFIK_SZEF",
+      "role": "designer"
+    },
+    {
+      "name": "AI_MARKETING",
+      "role": "marketing"
+    },
+    {
+      "name": "AI_SEO",
+      "role": "seo"
+    },
+    {
+      "name": "AI_RESEARCH",
+      "role": "research"
+    },
+    {
+      "name": "AI_BIZNES",
+      "role": "business"
+    }
+  ]
+}
