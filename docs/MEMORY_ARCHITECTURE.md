@@ -1,0 +1,16 @@
+# MEMORY ARCHITECTURE
+
+qualitet_memory
+
+henryk_memory
+project_memory
+user_memory
+company_memory
+ai_memory
+ads_memory
+trend_memory
+world_memory
+deployment_memory
+integration_memory
+audit_memory
+alert_memory
