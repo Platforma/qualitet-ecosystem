@@ -1,0 +1,9 @@
+{
+  "projectScore": 100,
+  "cloudflare": true,
+  "mongodb": true,
+  "ollama": true,
+  "render": true,
+  "dns": true,
+  "alerts": 0
+}
