@@ -1,3 +1,10 @@
 {
-  "alerts": []
+  "alerts": [
+    {
+      "id": 1,
+      "severity": "INFO",
+      "message": "Henryk Command Center uruchomione",
+      "date": "2026-10-24"
+    }
+  ]
 }
