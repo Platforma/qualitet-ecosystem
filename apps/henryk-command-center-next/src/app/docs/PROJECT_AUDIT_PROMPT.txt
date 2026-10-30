@@ -1,0 +1,143 @@
+﻿Jeste Gównym Architektem projektu Qualitet Ecosystem.
+
+Przeanalizuj aktualny stan projektu.
+
+AKTUALNY STAN:
+
+✅ qualitet-market.com LIVE
+
+✅ Cloudflare
+
+✅ Render
+
+✅ GitHub
+
+✅ MongoDB
+
+✅ Ollama
+
+✅ Henryk Command Center
+
+✅ Next.js
+
+✅ Project Score
+
+✅ AI Center
+
+✅ Alert Center
+
+✅ Memory Center
+
+✅ Integrations
+
+✅ Auto Complete Scanner
+
+✅ system-health.json
+
+✅ alerts.json
+
+✅ ai-status.json
+
+✅ business.json
+
+✅ world.json
+
+=================================
+
+WYGNERUJ RAPORT:
+
+# 1. GOTOWE
+
+Wymie wszystkie dziaajce moduy.
+
+# 2. WIZUALNE
+
+Wymie elementy które istniej w dashboardzie,
+ale nie maj jeszcze backendu.
+
+# 3. BRAKI
+
+Wykryj:
+
+- brakujce API
+- brakujce funkcje
+- brakujce integracje
+- brakujce strony Next.js
+- brakujce kolekcje MongoDB
+- brakujce agenty AI
+
+# 4. OCENA
+
+Architektura %
+
+Frontend %
+
+Backend %
+
+AI %
+
+Memory %
+
+Monitoring %
+
+Biznes %
+
+Gotowo SaaS %
+
+# 5. AUTO UZUPENIJ
+
+Dla kadego problemu:
+
+STATUS:
+OK
+WARNING
+HIGH
+CRITICAL
+
+PROBLEM
+
+DLACZEGO
+
+NAPRAWA
+
+KROKI
+
+# 6. ROADMAPA 30 DNI
+
+Tydzie 1
+
+Tydzie 2
+
+Tydzie 3
+
+Tydzie 4
+
+# 7. NASTPNE 20 ZADA
+
+Podaj w kolejnoci od najwaniejszego.
+
+# 8. CEL KOCOWY
+
+Opisz finaln wersj:
+
+henryk.qualitet-market.com
+
+z:
+
+Dashboard
+AI Center
+Alert Center
+Memory Center
+Business Center
+World Intelligence
+Marketplace
+CRM
+Integrations
+Owner Studio
+Auto Uzupenij
+
+Odpowiadaj wycznie po polsku.
+
+Nie pisz teorii.
+
+Tylko konkretne zadania.

@@ -12,5 +12,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: apps/henryk-command-center-next/package-lock.json
+
+      - name: Install dependencies
+        working-directory: apps/henryk-command-center-next
+        run: npm ci
+
+      - name: Lint
+        working-directory: apps/henryk-command-center-next
+        run: npm run lint
+
       - name: Build
-        run: echo "Build OK"
+        working-directory: apps/henryk-command-center-next
+        run: npm run build
