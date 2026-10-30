@@ -1,0 +1,9 @@
+﻿{
+  "alerts": [
+    {
+      "id": 1,
+      "severity": "INFO",
+      "message": "Henryk Command Center ONLINE"
+    }
+  ]
+}

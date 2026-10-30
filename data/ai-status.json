@@ -1,0 +1,17 @@
+﻿{
+  "AI_QUALITET": {
+    "status": "ONLINE"
+  },
+  "AI_DEVELOPER": {
+    "status": "ONLINE"
+  },
+  "AI_GRAFIK_SZEF": {
+    "status": "ONLINE"
+  },
+  "AI_MARKETING": {
+    "status": "ONLINE"
+  },
+  "AI_SEO": {
+    "status": "ONLINE"
+  }
+}

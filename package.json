@@ -1,5 +1,11 @@
 {
-  "name":"qualitet-ecosystem",
-  "private":true,
-  "version":"1.0.0"
+  "name": "qualitet-ecosystem",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "devDependencies": {
+    "@types/react": "^19.3.0"
+  }
 }

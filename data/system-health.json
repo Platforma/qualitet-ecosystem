@@ -1,0 +1,8 @@
+﻿{
+  "cloudflare": true,
+  "mongodb": true,
+  "ollama": true,
+  "render": true,
+  "git": true,
+  "dns": true
+}

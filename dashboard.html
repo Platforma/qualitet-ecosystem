@@ -1,0 +1,144 @@
+@'
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<title>Henryk Command Center</title>
+
+<style>
+
+body{
+    margin:0;
+    background:#0f172a;
+    color:white;
+    font-family:Segoe UI;
+}
+
+.header{
+    background:#111827;
+    padding:20px;
+    font-size:30px;
+    font-weight:bold;
+}
+
+.grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+    gap:20px;
+    padding:20px;
+}
+
+.card{
+    background:#1e293b;
+    border-radius:12px;
+    padding:20px;
+}
+
+.card h2{
+    margin-top:0;
+    color:#38bdf8;
+}
+
+.value{
+    font-size:32px;
+    font-weight:bold;
+}
+
+.ok{
+    color:#22c55e;
+}
+
+.warn{
+    color:#f59e0b;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="header">
+👑 HENRYK COMMAND CENTER
+</div>
+
+<div class="grid">
+
+<div class="card">
+<h2>PROJECT SCORE</h2>
+<div class="value">100 / 100</div>
+</div>
+
+<div class="card">
+<h2>PLATFORM STATUS</h2>
+<p class="ok">✅ Cloudflare</p>
+<p class="ok">✅ MongoDB</p>
+<p class="ok">✅ Ollama</p>
+<p class="ok">✅ Git</p>
+<p class="ok">✅ DNS</p>
+</div>
+
+<div class="card">
+<h2>AI CENTER</h2>
+
+<p>AI_QUALITET</p>
+<p>AI_DEVELOPER</p>
+<p>AI_GRAFIK_SZEF</p>
+<p>AI_MARKETING</p>
+<p>AI_SEO</p>
+
+</div>
+
+<div class="card">
+<h2>AUTO UZUPEŁNIJ</h2>
+<p class="ok">Brak problemów</p>
+</div>
+
+<div class="card">
+<h2>MEMORY CENTER</h2>
+
+<p>henryk_memory</p>
+<p>project_memory</p>
+<p>company_memory</p>
+<p>alert_memory</p>
+<p>world_memory</p>
+
+</div>
+
+<div class="card">
+<h2>BUSINESS CENTER</h2>
+
+<p>Przychód</p>
+<p>Subskrypcje</p>
+<p>Firmy</p>
+<p>Leady</p>
+
+</div>
+
+<div class="card">
+<h2>WORLD INTELLIGENCE</h2>
+
+<p>AI</p>
+<p>E-commerce</p>
+<p>Motoryzacja</p>
+<p>Polska</p>
+<p>Europa</p>
+
+</div>
+
+<div class="card">
+<h2>INTEGRATIONS</h2>
+
+<p>Cloudflare</p>
+<p>MongoDB</p>
+<p>GitHub</p>
+<p>Render</p>
+<p>Discord</p>
+<p>Stripe</p>
+
+</div>
+
+</div>
+
+</body>
+</html>
+'@ | Set-Content dashboard.html -Encoding UTF8
