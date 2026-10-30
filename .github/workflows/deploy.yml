@@ -18,7 +18,7 @@ jobs:
     steps:
       - name: Validate Render deploy hook
         env:
-          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets['RENDER_DEPLOY_HOOK_URL'] }}
         run: |
           if [[ -z "$RENDER_DEPLOY_HOOK_URL" ]]; then
             echo "::error::Missing the RENDER_DEPLOY_HOOK_URL repository secret."
@@ -32,7 +32,7 @@ jobs:
 
       - name: Trigger Render deployment
         env:
-          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets['RENDER_DEPLOY_HOOK_URL'] }}
         run: |
           if ! status="$(curl \
             --silent \
