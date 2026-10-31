@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { hasRole, requireUser } from "../../../../../lib/server/auth";
 import { isPromptFile, listProjectTextFiles, readProjectTextFile, writeProjectTextFile } from "../../../../../lib/server/owner-files";
@@ -21,6 +22,18 @@ export async function GET(request: Request) {
   const path = new URL(request.url).searchParams.get("path");
   if (path) {
     if (!validPromptPath(path)) return NextResponse.json({ error: "Nieprawidłowa ścieżka promptu." }, { status: 400 });
+    if (new URL(request.url).searchParams.get("history") === "1") {
+      const history = await getCollection("prompt_history").then((items) =>
+        items.find({ path }, { projection: { content: 0 } }).sort({ createdAt: -1 }).limit(30).toArray(),
+      );
+      return NextResponse.json({
+        history: history.map((entry) => ({
+          id: String(entry._id),
+          createdAt: entry.createdAt instanceof Date ? entry.createdAt.toISOString() : "",
+          createdBy: String(entry.createdBy ?? ""),
+        })),
+      }, { headers: { "Cache-Control": "no-store" } });
+    }
     const file = await readProjectTextFile(path);
     if (!file) return NextResponse.json({ error: "Nie znaleziono promptu." }, { status: 404 });
     const defaults = getCollection<{ _id: string; content: string } & Document>("owner_settings");
@@ -49,10 +62,45 @@ export async function POST(request: Request) {
 
   if (action === "save") {
     if (typeof parsed.body.content !== "string") return NextResponse.json({ error: "Prompt musi być tekstem." }, { status: 400 });
+    const previous = await readProjectTextFile(path);
+    if (previous && previous.content !== parsed.body.content) {
+      await getCollection<{ _id: string } & Document>("prompt_history").then((items) => items.insertOne({
+        _id: randomUUID(),
+        path,
+        content: previous.content,
+        createdAt: new Date(),
+        createdBy: auth.user._id,
+      }));
+    }
     const saved = await writeProjectTextFile(path, parsed.body.content);
     if (!saved) return NextResponse.json({ error: "Nie udało się zapisać promptu." }, { status: 400 });
     await writeAuditLog({ actorId: auth.user._id, action: "settings.prompt.update", entity: "ai_prompt", entityId: path });
     return NextResponse.json({ success: true });
+  }
+
+  if (action === "restore-history") {
+    if (typeof parsed.body.historyId !== "string" || !/^[a-f0-9-]{36}$/i.test(parsed.body.historyId)) {
+      return NextResponse.json({ error: "Nieprawidłowa wersja promptu." }, { status: 400 });
+    }
+    const historyId = parsed.body.historyId;
+    const previous = await getCollection<{ _id: string; path: string; content: string } & Document>("prompt_history").then((items) =>
+      items.findOne({ _id: historyId, path }),
+    );
+    if (!previous) return NextResponse.json({ error: "Nie znaleziono zapisanej wersji promptu." }, { status: 404 });
+    const current = await readProjectTextFile(path);
+    if (current && current.content !== previous.content) {
+      await getCollection<{ _id: string } & Document>("prompt_history").then((items) => items.insertOne({
+        _id: randomUUID(),
+        path,
+        content: current.content,
+        createdAt: new Date(),
+        createdBy: auth.user._id,
+      }));
+    }
+    const saved = await writeProjectTextFile(path, previous.content);
+    if (!saved) return NextResponse.json({ error: "Nie udało się przywrócić promptu." }, { status: 400 });
+    await writeAuditLog({ actorId: auth.user._id, action: "settings.prompt.history_restore", entity: "ai_prompt", entityId: path });
+    return NextResponse.json({ success: true, content: previous.content });
   }
 
   if (action === "reset") {

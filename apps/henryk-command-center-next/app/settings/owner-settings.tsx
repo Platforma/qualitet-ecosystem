@@ -3,9 +3,10 @@
 import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 import Link from "next/link";
 
-type SectionId = "prompts" | "system" | "mongodb" | "crm" | "marketplace" | "agents" | "files" | "integrations";
+type SectionId = "prompts" | "system" | "mongodb" | "crm" | "marketplace" | "agents" | "files" | "integrations" | "git" | "deploy" | "ads" | "command";
 type Config = Record<"APP_NAME" | "DOMAIN" | "EMAIL" | "OWNER_EMAIL" | "OLLAMA_MODEL" | "OLLAMA_URL", string>;
 type PromptFile = { path: string; size: number; modifiedAt?: string };
+type PromptVersion = { id: string; createdAt: string; createdBy: string };
 type Integration = {
   provider: string;
   status: string;
@@ -25,6 +26,46 @@ type Snapshot = {
 };
 type ProjectFile = { path: string; size: number; modifiedAt: string };
 type RecordRow = Record<string, unknown> & { _id: string };
+type ReplaceChange = { path: string; count: number; hash: string; preview: string };
+type GitSnapshot = {
+  available: boolean;
+  branch?: string;
+  files?: { status: string; path: string }[];
+  commits?: { hash: string; subject: string; age: string }[];
+  error?: string;
+};
+type AdsCampaign = {
+  id: string;
+  name: string;
+  status: string;
+  budget: number | null;
+  budgetType: string;
+  spend: number;
+  impressions: number;
+  clicks: number;
+  conversions?: number;
+  currency: string;
+};
+type AdsSnapshot = {
+  provider: string;
+  status: string;
+  message: string;
+  accounts: { id: string; name: string; status: string; currency: string; spend: number | null; balance: number | null }[];
+  campaigns: AdsCampaign[];
+};
+type DeploySnapshot = {
+  github: {
+    configured: boolean;
+    repository: string;
+    workflowConfigured: boolean;
+    latestRun: { name?: string; status?: string; conclusion?: string | null; htmlUrl?: string; updatedAt?: string } | null;
+  };
+  render: {
+    configured: boolean;
+    service: { name?: string; serviceType?: string; suspended?: boolean; dashboardUrl?: string } | null;
+  };
+  errors: string[];
+};
 
 const sections: { id: SectionId; title: string; mark: string }[] = [
   { id: "prompts", title: "AI Prompts", mark: "AI" },
@@ -34,7 +75,11 @@ const sections: { id: SectionId; title: string; mark: string }[] = [
   { id: "marketplace", title: "Marketplace", mark: "MKT" },
   { id: "agents", title: "AI Agents", mark: "AG" },
   { id: "files", title: "Files Center", mark: "<>" },
+  { id: "command", title: "Owner Command", mark: "AI" },
   { id: "integrations", title: "Integrations", mark: "INT" },
+  { id: "ads", title: "Ads Center", mark: "ADS" },
+  { id: "git", title: "Git Center", mark: "GIT" },
+  { id: "deploy", title: "Deploy Center", mark: "DEP" },
 ];
 
 const systemFields: { key: keyof Config; label: string; hint: string; type?: string }[] = [
@@ -95,7 +140,16 @@ async function requestJson<T>(url: string, init?: RequestInit): Promise<T> {
 }
 
 function sendJson(url: string, body: unknown, method = "POST") {
-  return requestJson<{ success?: boolean; imported?: number; result?: string; content?: string }>(url, {
+  return requestJson<{
+    success?: boolean;
+    imported?: number;
+    result?: string;
+    content?: string;
+    path?: string;
+    changes?: ReplaceChange[];
+    totalMatches?: number;
+    proposal?: string;
+  }>(url, {
     method,
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
@@ -181,6 +235,8 @@ export default function OwnerSettings() {
   const [selectedPrompt, setSelectedPrompt] = useState("");
   const [promptContent, setPromptContent] = useState("");
   const [promptTest, setPromptTest] = useState("");
+  const [promptHistory, setPromptHistory] = useState<PromptVersion[]>([]);
+  const [promptPreview, setPromptPreview] = useState(false);
   const [files, setFiles] = useState<ProjectFile[]>([]);
   const [selectedFile, setSelectedFile] = useState("");
   const [fileContent, setFileContent] = useState("");
@@ -193,6 +249,26 @@ export default function OwnerSettings() {
   const [busy, setBusy] = useState(false);
   const [newCollection, setNewCollection] = useState("");
   const [importFile, setImportFile] = useState<File | null>(null);
+  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
+  const [findText, setFindText] = useState("");
+  const [replaceText, setReplaceText] = useState("");
+  const [replaceChanges, setReplaceChanges] = useState<ReplaceChange[]>([]);
+  const [replaceTotal, setReplaceTotal] = useState(0);
+  const [aiInstruction, setAiInstruction] = useState("");
+  const [aiProposal, setAiProposal] = useState("");
+  const [gitSnapshot, setGitSnapshot] = useState<GitSnapshot | null>(null);
+  const [gitMessage, setGitMessage] = useState("");
+  const [gitSelection, setGitSelection] = useState<Set<string>>(new Set());
+  const [adsProvider, setAdsProvider] = useState("facebook");
+  const [adsSnapshot, setAdsSnapshot] = useState<AdsSnapshot | null>(null);
+  const [selectedAdAccount, setSelectedAdAccount] = useState("");
+  const [campaignName, setCampaignName] = useState("");
+  const [campaignObjective, setCampaignObjective] = useState("OUTCOME_TRAFFIC");
+  const [campaignBudget, setCampaignBudget] = useState("10");
+  const [deploySnapshot, setDeploySnapshot] = useState<DeploySnapshot | null>(null);
+  const [mongoDocument, setMongoDocument] = useState('{\n  "name": ""\n}');
+  const [mongoField, setMongoField] = useState("");
+  const [mongoFieldValue, setMongoFieldValue] = useState("");
 
   async function loadSnapshot() {
     const data = await requestJson<Snapshot>("/api/owner/settings");
@@ -204,11 +280,47 @@ export default function OwnerSettings() {
     setSelectedPrompt(result.path);
     setPromptContent(result.content);
     setPromptTest("");
+    setPromptHistory([]);
+    setPromptPreview(false);
+  }
+
+  async function loadPromptHistory() {
+    if (!selectedPrompt) return;
+    const result = await requestJson<{ history: PromptVersion[] }>(
+      `/api/owner/settings/prompts?path=${encodeURIComponent(selectedPrompt)}&history=1`,
+    );
+    setPromptHistory(result.history);
   }
 
   async function loadFiles(query = "") {
     const result = await requestJson<{ files: ProjectFile[] }>(`/api/owner/settings/files${query ? `?q=${encodeURIComponent(query)}` : ""}`);
     setFiles(result.files);
+  }
+
+  async function loadGit() {
+    setGitSnapshot(await requestJson<GitSnapshot>("/api/owner/git"));
+  }
+
+  async function loadAds(provider = adsProvider) {
+    setAdsProvider(provider);
+    setSelectedAdAccount("");
+    setAdsSnapshot(await requestJson<AdsSnapshot>(`/api/owner/ads?provider=${encodeURIComponent(provider)}`));
+  }
+
+  async function saveAdsAccount() {
+    if (!selectedAdAccount) return;
+    await perform(async () => {
+      await sendJson("/api/owner/settings", {
+        action: "save-integration",
+        provider: adsProvider,
+        values: { accountName: selectedAdAccount },
+      });
+      await Promise.all([loadSnapshot(), loadAds(adsProvider)]);
+    }, "Konto reklamowe zostało zapisane.");
+  }
+
+  async function loadDeploy() {
+    setDeploySnapshot(await requestJson<DeploySnapshot>("/api/owner/deploy"));
   }
 
   async function openFile(path: string) {
@@ -247,6 +359,36 @@ export default function OwnerSettings() {
         reportFailure(requestError);
       }
     }
+    if (nextSection === "git") {
+      try {
+        await loadGit();
+      } catch (requestError) {
+        reportFailure(requestError);
+      }
+    }
+    if (nextSection === "ads") {
+      try {
+        await loadAds();
+      } catch (requestError) {
+        reportFailure(requestError);
+      }
+    }
+    if (nextSection === "deploy") {
+      try {
+        await loadDeploy();
+      } catch (requestError) {
+        reportFailure(requestError);
+      }
+    }
+  }
+
+  async function triggerDeploy(action: "render-deploy" | "github-dispatch", confirmation: string) {
+    if (!window.confirm(confirmation)) return;
+    await perform(async () => {
+      const result = await sendJson("/api/owner/deploy", { action });
+      await loadDeploy();
+      setNotice(result.result ?? "Operacja wdrożenia została uruchomiona.");
+    }, "Operacja wdrożenia została uruchomiona.");
   }
 
   function changeCollection(collection: string) {
@@ -309,6 +451,17 @@ export default function OwnerSettings() {
       const result = await sendJson("/api/owner/settings/prompts", { action: "reset", path: selectedPrompt });
       if (typeof result.content === "string") setPromptContent(result.content);
     }, "Przywrócono domyślny prompt.");
+  }
+
+  async function restorePromptVersion(historyId: string) {
+    if (!selectedPrompt || !window.confirm("Przywrócić tę wersję promptu? Bieżąca wersja zostanie zachowana w historii.")) return;
+    await perform(async () => {
+      const result = await sendJson("/api/owner/settings/prompts", {
+        action: "restore-history", path: selectedPrompt, historyId,
+      });
+      if (typeof result.content === "string") setPromptContent(result.content);
+      await loadPromptHistory();
+    }, "Przywrócono wersję promptu.");
   }
 
   async function testPrompt() {
@@ -381,6 +534,32 @@ export default function OwnerSettings() {
     }, `Usunięto kolekcję ${name}.`);
   }
 
+  async function createMongoDocument(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    await perform(async () => {
+      const document: unknown = JSON.parse(mongoDocument);
+      if (typeof document !== "object" || document === null || Array.isArray(document)) {
+        throw new Error("Dokument musi być obiektem JSON.");
+      }
+      await sendJson("/api/owner/settings", { action: "create-document", name: activeCollection, document });
+      setMongoDocument('{\n  "name": ""\n}');
+    }, "Dokument został utworzony.");
+  }
+
+  async function addMongoField(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    let value: string | number | boolean = mongoFieldValue;
+    if (mongoFieldValue === "true") value = true;
+    else if (mongoFieldValue === "false") value = false;
+    else if (mongoFieldValue.trim() !== "" && Number.isFinite(Number(mongoFieldValue))) value = Number(mongoFieldValue);
+    await perform(async () => {
+      await sendJson("/api/owner/settings", {
+        action: "add-field", name: activeCollection, field: mongoField, value,
+      });
+      setMongoField("");
+    }, "Pole dodane do dokumentów, w których wcześniej nie występowało.");
+  }
+
   async function importCollection(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!importFile || !activeCollection) return;
@@ -406,6 +585,104 @@ export default function OwnerSettings() {
     await perform(() => sendJson("/api/owner/settings/files", { path: selectedFile, content: fileContent }, "PATCH"), "Plik został zapisany.");
   }
 
+  async function previewReplace(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    await perform(async () => {
+      const result = await sendJson("/api/owner/settings/files", {
+        action: "preview-replace", search: findText, replacement: replaceText,
+      });
+      setReplaceChanges((result as { changes?: ReplaceChange[] }).changes ?? []);
+      setReplaceTotal((result as { totalMatches?: number }).totalMatches ?? 0);
+    }, "Podgląd zmian jest gotowy.");
+  }
+
+  async function applyReplace() {
+    if (replaceChanges.length === 0 || !window.confirm(`Zamienić ${replaceTotal} wystąpień w ${replaceChanges.length} plikach?`)) return;
+    await perform(async () => {
+      await sendJson("/api/owner/settings/files", {
+        action: "apply-replace", search: findText, replacement: replaceText,
+        targets: replaceChanges.map(({ path, hash }) => ({ path, hash })),
+      });
+      setReplaceChanges([]);
+      setReplaceTotal(0);
+      await loadFiles(fileQuery.trim());
+    }, "Zmiany zostały zastosowane.");
+  }
+
+  async function requestAiProposal(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!selectedFile) {
+      setError("Najpierw wybierz plik do edycji przez AI.");
+      return;
+    }
+    await perform(async () => {
+      const result = await sendJson("/api/owner/settings/files", {
+        action: "ai-propose", path: selectedFile, instruction: aiInstruction,
+      });
+      const proposal = (result as { proposal?: string }).proposal;
+      if (typeof proposal !== "string") throw new Error("AI nie zwróciło propozycji.");
+      setAiProposal(proposal);
+    }, "Propozycja AI jest gotowa do sprawdzenia.");
+  }
+
+  async function executeOwnerCommand(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    await perform(async () => {
+      const location = await sendJson("/api/owner/settings/files", {
+        action: "ai-locate", instruction: aiInstruction,
+      });
+      if (!location.path) throw new Error("AI nie wskazało pliku.");
+      const path = location.path;
+      await openFile(path);
+      const proposal = await sendJson("/api/owner/settings/files", {
+        action: "ai-propose", path, instruction: aiInstruction,
+      });
+      if (!proposal.proposal) throw new Error("AI nie przygotowało propozycji.");
+      setAiProposal(proposal.proposal);
+      setSection("command");
+    }, "AI znalazło plik i przygotowało propozycję do sprawdzenia.");
+  }
+
+  async function acceptAiProposal() {
+    if (!selectedFile || !aiProposal) return;
+    setFileContent(aiProposal);
+    setAiProposal("");
+    setSection("files");
+    setNotice("Propozycja wczytana do edytora. Sprawdź ją i kliknij „Zapisz plik”, aby zastosować.");
+  }
+
+  async function performGitAction(action: string, extra: Record<string, unknown> = {}) {
+    await perform(async () => {
+      await sendJson("/api/owner/git", { action, ...extra });
+      await loadGit();
+    }, "Operacja Git zakończona.");
+  }
+
+  async function commitSelectedFiles(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (gitSelection.size === 0 || !gitMessage.trim()) return;
+    await performGitAction("commit", { message: gitMessage, files: [...gitSelection] });
+    setGitMessage("");
+    setGitSelection(new Set());
+  }
+
+  async function createAdCampaign(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!campaignName.trim()) return;
+    if (!window.confirm(`Utworzyć kampanię ${adsProvider === "facebook" ? "Meta" : "Google"} w stanie PAUSED?`)) return;
+    await perform(async () => {
+      await sendJson("/api/owner/ads", {
+        action: "create-campaign",
+        provider: adsProvider,
+        name: campaignName,
+        objective: campaignObjective,
+        dailyBudget: Number(campaignBudget),
+      });
+      setCampaignName("");
+      await loadAds(adsProvider);
+    }, "Kampania utworzona jako wstrzymana.");
+  }
+
   function updateConfig(key: keyof Config, value: string) {
     setSnapshot((previous) => previous ? { ...previous, config: { ...previous.config, [key]: value } } : previous);
   }
@@ -425,6 +702,31 @@ export default function OwnerSettings() {
   }
 
   const currentSection = sections.find((item) => item.id === section) ?? sections[0];
+  const fileTree = files.map((file) => {
+    const parts = file.path.split("/");
+    const fileName = parts.pop() ?? file.path;
+    const folders = parts.map((_, index) => parts.slice(0, index + 1).join("/"));
+    return { ...file, fileName, folders };
+  });
+  const treeEntries = fileTree.flatMap((file) => [
+    ...file.folders.map((path, index) => ({
+      path,
+      label: path.split("/").at(-1) ?? path,
+      isFolder: true,
+      depth: index,
+      ancestors: file.folders.slice(0, index),
+    })),
+    {
+      path: file.path,
+      label: file.fileName,
+      isFolder: false,
+      depth: file.folders.length,
+      ancestors: file.folders,
+    },
+  ]);
+  const uniqueTreeEntries = [...new Map(treeEntries.map((entry) => [`${entry.isFolder ? "d" : "f"}:${entry.path}`, entry])).values()]
+    .filter((entry) => entry.ancestors.every((folder) => expandedFolders.has(folder)))
+    .sort((left, right) => left.path.localeCompare(right.path) || Number(right.isFolder) - Number(left.isFolder));
 
   return (
     <div className="min-h-screen bg-[#0B0F19] text-[#F9FAFB]">
@@ -479,8 +781,9 @@ export default function OwnerSettings() {
                 </div>
               </div>
               <div className="min-w-0">
-                <div className="mb-4 flex flex-wrap items-center justify-between gap-3"><div><p className="font-mono text-[10px] text-slate-500">{selectedPrompt || "Wybierz prompt z listy"}</p><p className="mt-1 text-[10px] text-slate-600">Edycja tekstu źródłowego</p></div><div className="flex flex-wrap gap-2"><button className={buttonClass} disabled={!selectedPrompt || busy} onClick={() => void resetPrompt()} type="button">Przywróć domyślny</button><button className={buttonClass} disabled={!selectedPrompt || busy} onClick={() => void testPrompt()} type="button">▷ Test prompt</button><button className={primaryButtonClass} disabled={!selectedPrompt || busy} onClick={() => void savePrompt()} type="button">Zapisz prompt</button></div></div>
-                <textarea aria-label="Treść promptu" className={`${inputClass} min-h-107.5 resize-y font-mono text-[12px] leading-6`} onChange={(event) => setPromptContent(event.target.value)} value={promptContent} />
+                <div className="mb-4 flex flex-wrap items-center justify-between gap-3"><div><p className="font-mono text-[10px] text-slate-500">{selectedPrompt || "Wybierz prompt z listy"}</p><p className="mt-1 text-[10px] text-slate-600">{promptPreview ? "Podgląd treści" : "Edycja tekstu źródłowego"}</p></div><div className="flex flex-wrap gap-2"><button className={buttonClass} disabled={!selectedPrompt || busy} onClick={() => setPromptPreview((previous) => !previous)} type="button">{promptPreview ? "Edytuj" : "Podgląd"}</button><button className={buttonClass} disabled={!selectedPrompt || busy} onClick={() => void resetPrompt()} type="button">Przywróć domyślny</button><button className={buttonClass} disabled={!selectedPrompt || busy} onClick={() => void perform(loadPromptHistory, "Historia promptu wczytana.")} type="button">Historia promptu</button><button className={buttonClass} disabled={!selectedPrompt || busy} onClick={() => void testPrompt()} type="button">▷ Test prompt</button><button className={primaryButtonClass} disabled={!selectedPrompt || busy || promptPreview} onClick={() => void savePrompt()} type="button">Zapisz prompt</button></div></div>
+                {promptPreview ? <pre className="min-h-107.5 overflow-auto whitespace-pre-wrap rounded-md border border-[#374151] bg-[#0B0F19] p-4 font-mono text-[12px] leading-6 text-[#D1D5DB]">{promptContent}</pre> : <textarea aria-label="Treść promptu" className={`${inputClass} min-h-107.5 resize-y font-mono text-[12px] leading-6`} onChange={(event) => setPromptContent(event.target.value)} value={promptContent} />}
+                {promptHistory.length > 0 && <div className="mt-4 rounded border border-[#374151] bg-[#111827] p-3"><p className="mb-2 text-[10px] font-semibold text-[#D1D5DB]">Zapisane wersje</p><div className="space-y-2">{promptHistory.map((version) => <div className="flex flex-wrap items-center justify-between gap-2 border-t border-[#374151] pt-2" key={version.id}><span className="text-[10px] text-[#9CA3AF]">{version.createdAt ? new Date(version.createdAt).toLocaleString("pl-PL") : "Wersja"} · {version.createdBy}</span><button className={buttonClass} disabled={busy} onClick={() => void restorePromptVersion(version.id)} type="button">Przywróć</button></div>)}</div></div>}
                 {promptTest && <div className="mt-4 border-l-2 border-cyan-300/60 bg-white/3 p-4"><p className="mb-2 font-mono text-[9px] uppercase tracking-wider text-cyan-200">Wynik testu · Ollama</p><p className="whitespace-pre-wrap text-xs leading-5 text-slate-300">{promptTest}</p></div>}
               </div>
             </div>
@@ -501,6 +804,10 @@ export default function OwnerSettings() {
               <div className="mb-8"><div className="mb-3 flex items-center justify-between"><h2 className="text-xs font-semibold text-white">Kolekcje</h2><form className="flex gap-2" onSubmit={(event) => void createCollection(event)}><input aria-label="Nazwa nowej kolekcji" className={`${inputClass} w-48 py-2 text-xs`} onChange={(event) => setNewCollection(event.target.value)} placeholder="nazwa_kolekcji" value={newCollection} /><button className={buttonClass} disabled={busy || !newCollection.trim()} type="submit">＋ Utwórz</button></form></div>
                 <div className="divide-y divide-white/6 border-y border-white/8">{snapshot.database.collections.map((name) => <div className="flex flex-wrap items-center justify-between gap-3 py-2.5" key={name}><span className="font-mono text-[11px] text-slate-300">{name}</span><div className="flex gap-2"><a className={buttonClass} href={`/api/owner/settings?export=${encodeURIComponent(name)}`}>↓ Eksport JSON</a><button className={`${buttonClass} text-rose-300 hover:border-rose-400/30 hover:text-rose-200`} disabled={busy || ["users", "auth_sessions", "auth_attempts", "audit_logs", "owner_settings", "integrations", "system_health"].includes(name)} onClick={() => void dropCollection(name)} type="button">Usuń</button></div></div>)}</div>
               </div>
+              <div className="mb-6 grid gap-4 border-t border-white/8 pt-5 lg:grid-cols-2">
+                <form className="rounded border border-blue-500/30 bg-[#111827] p-4" onSubmit={(event) => void createMongoDocument(event)}><h2 className="mb-2 text-xs font-semibold text-white">Nowy dokument</h2><select aria-label="Kolekcja nowego dokumentu" className={`${inputClass} mb-2`} onChange={(event) => setActiveCollection(event.target.value)} value={activeCollection}>{snapshot.database.collections.filter((name) => !["users", "auth_sessions", "auth_attempts", "audit_logs", "owner_settings", "integrations", "system_health"].includes(name)).map((name) => <option key={name} value={name}>{name}</option>)}</select><textarea aria-label="Dokument JSON" className={`${inputClass} font-mono text-xs`} onChange={(event) => setMongoDocument(event.target.value)} rows={5} value={mongoDocument} /><button className={`${primaryButtonClass} mt-2`} disabled={busy} type="submit">Utwórz dokument</button></form>
+                <form className="rounded border border-blue-500/30 bg-[#111827] p-4" onSubmit={(event) => void addMongoField(event)}><h2 className="mb-2 text-xs font-semibold text-white">Dodaj pole do dokumentów</h2><select aria-label="Kolekcja nowego pola" className={`${inputClass} mb-2`} onChange={(event) => setActiveCollection(event.target.value)} value={activeCollection}>{snapshot.database.collections.filter((name) => !["users", "auth_sessions", "auth_attempts", "audit_logs", "owner_settings", "integrations", "system_health"].includes(name)).map((name) => <option key={name} value={name}>{name}</option>)}</select><div className="grid gap-2 sm:grid-cols-2"><input className={inputClass} onChange={(event) => setMongoField(event.target.value)} placeholder="nazwa_pola" value={mongoField} /><input className={inputClass} onChange={(event) => setMongoFieldValue(event.target.value)} placeholder="Wartość domyślna" value={mongoFieldValue} /></div><button className={`${buttonClass} mt-2`} disabled={busy || !mongoField.trim()} type="submit">Dodaj pole</button><p className="mt-2 text-[10px] text-[#9CA3AF]">Wartość trafia do dokumentów, w których to pole nie występuje.</p></form>
+              </div>
               <form className="flex flex-wrap items-end gap-3 border-t border-white/8 pt-5" onSubmit={(event) => void importCollection(event)}><label className="block"><span className="mb-1.5 block text-[10px] font-semibold text-slate-400">Import JSON do kolekcji</span><input accept="application/json,.json" className="block max-w-70 text-xs text-slate-400 file:mr-3 file:rounded file:border-0 file:bg-white/8 file:px-3 file:py-2 file:text-[10px] file:font-semibold file:text-slate-200" onChange={(event: ChangeEvent<HTMLInputElement>) => setImportFile(event.target.files?.[0] ?? null)} type="file" /></label><label className="block"><span className="mb-1.5 block text-[10px] font-semibold text-slate-400">Kolekcja docelowa</span><select className={`${inputClass} min-w-48 py-2`} onChange={(event) => setActiveCollection(event.target.value)} value={activeCollection}>{snapshot.database.collections.filter((name) => !["users", "auth_sessions", "auth_attempts", "audit_logs", "owner_settings", "integrations", "system_health"].includes(name)).map((name) => <option key={name} value={name}>{name}</option>)}</select></label><button className={primaryButtonClass} disabled={busy || !importFile} type="submit">↑ Importuj dane</button></form>
             </>}
           </section>}
@@ -518,15 +825,87 @@ export default function OwnerSettings() {
 
           {section === "files" && <section className="rounded-xl border border-blue-500/30 bg-[#111827] p-4 sm:p-6">
             <SectionHeading detail="Przeszukuj tekstowe pliki projektu, otwieraj podgląd i zapisuj zmiany z panelu." eyebrow="Workspace / Source" mode="edit" title="Files Center" />
+            <p className="mb-5 rounded border border-amber-400/30 bg-amber-500/10 p-3 text-[11px] leading-5 text-amber-100">Zmiany plików zapisują się w katalogu procesu aplikacji. Na hostingu z efemerycznym systemem plików mogą nie przetrwać restartu; Git Center wymaga lokalnego checkoutu repozytorium.</p>
+            <section className="mb-6 rounded-lg border border-[#374151] bg-[#1F2937] p-4">
+              <div className="mb-3 flex items-center gap-2"><span className="rounded border border-[#4B5563] px-2 py-1 font-mono text-[9px] uppercase text-[#D1D5DB]">Znajdź i zamień</span><span className="text-[10px] text-[#9CA3AF]">Podgląd przed zapisem · dopasowanie dokładne</span></div>
+              <form className="grid gap-3 sm:grid-cols-[1fr_1fr_auto]" onSubmit={(event) => void previewReplace(event)}>
+                <Field label="Szukaj" onChange={setFindText} value={findText} />
+                <Field label="Zamień na" onChange={setReplaceText} value={replaceText} />
+                <button className={`${buttonClass} self-end`} disabled={busy || !findText} type="submit">Podgląd zmian</button>
+              </form>
+              {replaceChanges.length > 0 && <div className="mt-4 rounded-md border border-blue-500/30 bg-[#111827] p-3">
+                <div className="mb-3 flex flex-wrap items-center justify-between gap-2"><p className="text-xs text-[#D1D5DB]">{replaceTotal} wystąpień · {replaceChanges.length} plików{replaceChanges.length === 100 ? "+" : ""}</p><button className={primaryButtonClass} disabled={busy} onClick={() => void applyReplace()} type="button">Zastosuj</button></div>
+                <div className="max-h-60 space-y-2 overflow-auto">{replaceChanges.map((change) => <details className="rounded border border-[#374151] p-2" key={change.path}><summary className="cursor-pointer font-mono text-[10px] text-blue-200">{change.path} · {change.count} zmian</summary><pre className="mt-2 overflow-auto whitespace-pre-wrap text-[10px] leading-4 text-[#D1D5DB]">{change.preview}</pre></details>)}</div>
+              </div>}
+            </section>
+            <section className="mb-6 rounded-lg border border-blue-500/30 bg-[#111827] p-4">
+              <div className="mb-3 flex items-center gap-2"><span className="rounded border border-blue-400/30 bg-blue-500/10 px-2 py-1 font-mono text-[9px] uppercase text-blue-200">AI File Editor</span><span className="text-[10px] text-[#9CA3AF]">Propozycja jest tylko podglądem do zatwierdzenia</span></div>
+              <form className="flex flex-col gap-3 sm:flex-row sm:items-end" onSubmit={(event) => void requestAiProposal(event)}>
+                <label className="block min-w-0 flex-1"><span className="mb-1.5 block text-xs font-semibold text-[#D1D5DB]">Co chcesz zmienić?</span><input className={inputClass} onChange={(event) => setAiInstruction(event.target.value)} placeholder="Np. zmień kolor głównego przycisku na niebieski" value={aiInstruction} /></label>
+                <button className={buttonClass} disabled={busy || !selectedFile || !aiInstruction.trim()} type="submit">Utwórz propozycję</button>
+              </form>
+              {aiProposal && <div className="mt-3 rounded border border-blue-500/30 p-3"><p className="mb-2 text-[10px] text-blue-200">Podgląd propozycji dla {selectedFile}</p><pre className="max-h-60 overflow-auto whitespace-pre-wrap text-[10px] leading-4 text-[#D1D5DB]">{aiProposal}</pre><button className={`${primaryButtonClass} mt-3`} onClick={() => void acceptAiProposal()} type="button">Wczytaj do edytora</button></div>}
+            </section>
             <div className="grid min-h-[65vh] border border-white/8 lg:grid-cols-[280px_minmax(0,1fr)]">
-              <div className="border-b border-white/8 lg:border-b-0 lg:border-r"><form className="flex gap-2 border-b border-white/8 p-3" onSubmit={(event) => void runFileSearch(event)}><input aria-label="Szukaj w plikach" className={`${inputClass} min-w-0 py-2 text-[11px]`} onChange={(event) => setFileQuery(event.target.value)} placeholder="Szukaj plików i treści" value={fileQuery} /><button aria-label="Uruchom wyszukiwanie" className={buttonClass} type="submit">⌕</button></form><div className="max-h-[65vh] overflow-y-auto p-2">{files.map((file) => <button className={`block w-full truncate rounded px-2.5 py-2 text-left font-mono text-[10px] ${selectedFile === file.path ? "bg-white/7 text-cyan-200" : "text-slate-400 hover:bg-white/4 hover:text-white"}`} key={file.path} onClick={() => void perform(() => openFile(file.path), "Plik otwarty.")} type="button">{file.path}</button>)}{files.length === 0 && <p className="px-2 py-6 text-[10px] text-slate-600">Brak wyników.</p>}</div></div>
+              <div className="border-b border-white/8 lg:border-b-0 lg:border-r"><form className="flex gap-2 border-b border-white/8 p-3" onSubmit={(event) => void runFileSearch(event)}><input aria-label="Szukaj w plikach" className={`${inputClass} min-w-0 py-2 text-[11px]`} onChange={(event) => setFileQuery(event.target.value)} placeholder="Szukaj folderów, plików i treści" value={fileQuery} /><button aria-label="Uruchom wyszukiwanie" className={buttonClass} type="submit">⌕</button></form><div className="max-h-[65vh] overflow-y-auto p-2">{uniqueTreeEntries.map((entry) => entry.isFolder ? <button className="block w-full truncate rounded px-2 py-2 text-left font-mono text-[10px] text-[#D1D5DB] hover:bg-[#293548]" key={`folder:${entry.path}`} onClick={() => setExpandedFolders((previous) => { const next = new Set(previous); if (next.has(entry.path)) next.delete(entry.path); else next.add(entry.path); return next; })} style={{ paddingLeft: `${8 + entry.depth * 12}px` }} type="button">{expandedFolders.has(entry.path) ? "▾" : "▸"} {entry.label}/</button> : <button className={`block w-full truncate rounded px-2 py-2 text-left font-mono text-[10px] ${selectedFile === entry.path ? "bg-blue-500/15 text-blue-200" : "text-[#D1D5DB] hover:bg-[#293548]"}`} key={`file:${entry.path}`} onClick={() => void perform(() => openFile(entry.path), "Plik otwarty.")} style={{ paddingLeft: `${16 + entry.depth * 12}px` }} type="button">{entry.label}</button>)}{files.length === 0 && <p className="px-2 py-6 text-[10px] text-slate-600">Brak wyników.</p>}</div></div>
               <div className="flex min-w-0 flex-col"><div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/8 px-4 py-3"><span className="truncate font-mono text-[10px] text-slate-400">{selectedFile || "Wybierz plik z listy"}</span><button className={primaryButtonClass} disabled={!selectedFile || busy} onClick={() => void saveFile()} type="button">Zapisz plik</button></div><textarea aria-label="Treść pliku" className="min-h-[55vh] flex-1 resize-none bg-[#090e14] p-4 font-mono text-[11px] leading-5 text-slate-300 outline-none" onChange={(event) => setFileContent(event.target.value)} spellCheck={false} value={fileContent} /></div>
             </div>
           </section>}
 
+          {section === "command" && <section className="rounded-xl border border-blue-500/30 bg-[#111827] p-4 sm:p-6">
+            <SectionHeading detail="Opisz zmianę zwykłym językiem. AI wybierze bezpieczny plik tekstowy i pokaże propozycję; zapis wymaga Twojej akceptacji." eyebrow="Owner Studio / AI Operator" mode="edit" title="Owner Command Center" />
+            <form className="max-w-3xl" onSubmit={(event) => void executeOwnerCommand(event)}>
+              <label className="block"><span className="mb-2 block text-sm font-semibold text-[#D1D5DB]">Co chcesz zmienić?</span><textarea className={`${inputClass} min-h-32 resize-y`} onChange={(event) => setAiInstruction(event.target.value)} placeholder="Np. zmień nazwę „Henryk Command Center” na „Qualitet OS” albo zmień tło panelu na ciemniejsze." value={aiInstruction} /></label>
+              <div className="mt-3 flex flex-wrap items-center justify-between gap-3"><p className="max-w-lg text-[10px] leading-4 text-[#9CA3AF]">Model AI działa tylko po skonfigurowaniu Ollama. Nie uruchamia poleceń powłoki ani nie zapisuje zmian bez Twojego potwierdzenia.</p><button className={primaryButtonClass} disabled={busy || aiInstruction.trim().length < 3} type="submit">Znajdź plik i pokaż zmianę</button></div>
+            </form>
+            {aiProposal && <div className="mt-6 max-w-4xl rounded border border-blue-500/30 bg-[#0B0F19] p-4"><div className="mb-3 flex flex-wrap items-center justify-between gap-2"><p className="text-xs font-semibold text-white">Propozycja dla <code className="font-mono text-blue-200">{selectedFile}</code></p><button className={primaryButtonClass} onClick={() => void acceptAiProposal()} type="button">Otwórz w edytorze</button></div><pre className="max-h-[50vh] overflow-auto whitespace-pre-wrap text-[10px] leading-5 text-[#D1D5DB]">{aiProposal}</pre></div>}
+            <div className="mt-6 grid gap-3 sm:grid-cols-3">{[["CRM / Marketplace", "Otwórz tabele i edytuj dane bez plików.", "crm"], ["Agenci AI", "Dodaj lub edytuj agentów, modele i role.", "agents"], ["MongoDB", "Kolekcje, dokumenty, pola i eksport.", "mongodb"]].map(([title, detail, target]) => <button className="rounded border border-[#374151] bg-[#1F2937] p-3 text-left hover:border-[#4B5563]" key={target} onClick={() => void changeSection(target as SectionId)} type="button"><span className="block text-xs font-semibold text-white">{title}</span><span className="mt-1 block text-[10px] text-[#9CA3AF]">{detail}</span></button>)}</div>
+          </section>}
+
+          {section === "git" && <section className="rounded-xl border border-[#374151] bg-[#1F2937] p-4 sm:p-6">
+            <SectionHeading detail="Podgląd repozytorium i jawne operacje. Commit obejmuje wyłącznie wybrane pliki; pull działa tylko fast-forward." eyebrow="Source Control / Git" mode="mixed" title="Git Center" />
+            {!gitSnapshot ? <button className={buttonClass} onClick={() => void perform(loadGit, "Status Git odświeżony.")} type="button">Odczytaj status Git</button> : !gitSnapshot.available ? <p className="rounded border border-amber-400/30 bg-amber-500/10 p-4 text-sm text-amber-200">{gitSnapshot.error || "Repozytorium Git niedostępne w tym środowisku."}</p> : <>
+              <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded border border-[#374151] bg-[#111827] p-4"><div><p className="font-mono text-[9px] uppercase text-[#9CA3AF]">Gałąź</p><p className="mt-1 font-mono text-sm text-white">{gitSnapshot.branch}</p><p className="mt-1 text-[10px] text-[#9CA3AF]">{gitSnapshot.files?.length ?? 0} zmienionych plików</p></div><div className="flex flex-wrap gap-2"><button className={buttonClass} disabled={busy} onClick={() => void perform(() => loadGit(), "Status odświeżony.")} type="button">Odśwież</button><button className={buttonClass} disabled={busy || gitSnapshot.branch !== "main"} onClick={() => { if (window.confirm("Pobrać zmiany z origin/main? Operacja zadziała tylko dla czystego worktree.")) void performGitAction("pull"); }} type="button">Pull main</button><button className={primaryButtonClass} disabled={busy || gitSnapshot.branch !== "main"} onClick={() => { if (window.confirm("Wysłać istniejące commity gałęzi main do origin?")) void performGitAction("push"); }} type="button">Push main</button></div></div>
+              <form className="mb-7 rounded border border-blue-500/30 bg-[#111827] p-4" onSubmit={(event) => void commitSelectedFiles(event)}>
+                <h2 className="mb-3 text-xs font-semibold text-white">Zmiany lokalne · wybierz pliki do commita</h2>
+                <div className="mb-3 max-h-56 space-y-1 overflow-auto">{gitSnapshot.files?.map((file) => <label className="flex items-center gap-2 rounded px-2 py-2 text-[11px] text-[#D1D5DB] hover:bg-[#293548]" key={file.path}><input checked={gitSelection.has(file.path)} onChange={(event) => setGitSelection((previous) => { const next = new Set(previous); if (event.target.checked) next.add(file.path); else next.delete(file.path); return next; })} type="checkbox" /><span className="w-8 font-mono text-blue-200">{file.status}</span><span className="truncate font-mono">{file.path}</span></label>)}{gitSnapshot.files?.length === 0 && <p className="py-3 text-xs text-[#9CA3AF]">Brak lokalnych zmian.</p>}</div>
+                <div className="flex flex-col gap-2 sm:flex-row"><input className={inputClass} maxLength={120} onChange={(event) => setGitMessage(event.target.value)} placeholder="Opis commita" value={gitMessage} /><button className={primaryButtonClass} disabled={busy || !gitMessage.trim() || gitSelection.size === 0} type="submit">Commit wybranych</button></div>
+              </form>
+              <div className="rounded border border-[#374151] bg-[#111827]"><div className="border-b border-[#374151] px-4 py-3"><h2 className="text-xs font-semibold text-white">Historia · rollback tworzy commit odwracający</h2></div><div className="divide-y divide-[#374151]">{gitSnapshot.commits?.map((commit) => <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3" key={commit.hash}><div className="min-w-0"><p className="truncate text-xs text-[#D1D5DB]">{commit.subject}</p><p className="mt-1 font-mono text-[9px] text-[#9CA3AF]">{commit.hash.slice(0, 10)} · {commit.age}</p></div><button className={buttonClass} disabled={busy || gitSnapshot.branch !== "main"} onClick={() => { if (window.confirm(`Utworzyć commit odwracający ${commit.hash.slice(0, 10)}? Wymagany jest czysty worktree.`)) void performGitAction("revert", { hash: commit.hash }); }} type="button">Rollback</button></div>)}</div></div>
+            </>}
+          </section>}
+
+          {section === "deploy" && <section className="rounded-xl border border-[#374151] bg-[#1F2937] p-4 sm:p-6">
+            <SectionHeading detail="Status wdrożenia i gotowość integracji. Akcje wdrożeniowe pojawią się po skonfigurowaniu uprawnień API." eyebrow="Operations / Deploy" mode="read" title="Deploy Center" />
+            <div className="mb-4 flex justify-end"><button className={buttonClass} disabled={busy} onClick={() => void perform(loadDeploy, "Status wdrożeń odświeżony.")} type="button">Odśwież status</button></div>
+            {!deploySnapshot ? <p className="text-xs text-[#9CA3AF]">Ładowanie statusu wdrożeń…</p> : <>
+              <div className="grid gap-4 md:grid-cols-3">
+                <article className="rounded border border-[#374151] bg-[#111827] p-4"><p className="font-mono text-[9px] uppercase text-[#9CA3AF]">Build / GitHub Actions</p><p className="mt-2 text-sm text-[#D1D5DB]">{deploySnapshot.github.latestRun?.name ?? (deploySnapshot.github.configured ? "Brak uruchomień" : "Nieskonfigurowane")}</p><p className="mt-1 text-[10px] text-[#9CA3AF]">{deploySnapshot.github.latestRun ? `${deploySnapshot.github.latestRun.status} · ${deploySnapshot.github.latestRun.conclusion ?? "w toku"}` : deploySnapshot.github.repository}</p>{deploySnapshot.github.latestRun?.htmlUrl && <a className="mt-2 inline-block text-[10px] text-blue-200 underline" href={deploySnapshot.github.latestRun.htmlUrl} rel="noreferrer" target="_blank">Otwórz workflow</a>}</article>
+                <article className="rounded border border-[#374151] bg-[#111827] p-4"><p className="font-mono text-[9px] uppercase text-[#9CA3AF]">Render</p><p className="mt-2 text-sm text-[#D1D5DB]">{deploySnapshot.render.service?.name ?? (deploySnapshot.render.configured ? "Usługa skonfigurowana" : "Nieskonfigurowane")}</p><p className="mt-1 text-[10px] text-[#9CA3AF]">{deploySnapshot.render.service?.suspended ? "Usługa zawieszona" : deploySnapshot.render.service?.serviceType ?? "Wymagane RENDER_API_KEY i RENDER_SERVICE_ID"}</p></article>
+                <article className="rounded border border-[#374151] bg-[#111827] p-4"><p className="font-mono text-[9px] uppercase text-[#9CA3AF]">Połączenie</p><p className="mt-2 text-sm text-[#D1D5DB]">GitHub: {deploySnapshot.github.configured ? "połączono" : "brak tokenu"}</p><p className="mt-1 text-sm text-[#D1D5DB]">Render: {deploySnapshot.render.configured ? "połączono" : "brak konfiguracji"}</p></article>
+              </div>
+              {deploySnapshot.errors.map((message) => <p className="mt-3 rounded border border-rose-400/30 bg-rose-500/10 p-3 text-xs text-rose-200" key={message}>{message}</p>)}
+              <div className="mt-5 flex flex-wrap gap-2"><button className={buttonClass} disabled={busy || !deploySnapshot.render.configured} onClick={() => void triggerDeploy("render-deploy", "Uruchomić nowy deploy/restart usługi Render?")} type="button">Render Deploy / Restart</button><button className={buttonClass} disabled={busy || !deploySnapshot.github.configured || !deploySnapshot.github.workflowConfigured} onClick={() => void triggerDeploy("github-dispatch", "Uruchomić workflow GitHub Actions dla gałęzi main?")} type="button">GitHub Actions · Deploy main</button></div>
+              <p className="mt-4 text-[10px] leading-4 text-[#9CA3AF]">Wymagane zmienne serwera: RENDER_API_KEY + RENDER_SERVICE_ID; GITHUB_PAT + GITHUB_DEPLOY_WORKFLOW (GITHUB_REPOSITORY opcjonalnie). Akcje wymagają jawnego potwierdzenia.</p>
+            </>}
+          </section>}
+
+          {section === "ads" && <section className="rounded-xl border border-[#374151] bg-[#1F2937] p-4 sm:p-6">
+            <SectionHeading detail="Panele kont, kampanii, wydatków, wyników i budżetów. Działania bazują na oficjalnych API i wyraźnie wskazują brak uprawnień." eyebrow="Advertising / Accounts" mode="mixed" title="Ads Center" />
+            <div className="mb-5 flex flex-wrap gap-2">{[["facebook", "Meta Ads"], ["google_ads", "Google Ads"], ["allegro", "Allegro Ads"], ["olx", "OLX Ads"]].map(([provider, label]) => <button className={`${adsProvider === provider ? primaryButtonClass : buttonClass}`} key={provider} onClick={() => void perform(() => loadAds(provider), "Dane reklam odświeżone.")} type="button">{label}</button>)}</div>
+            {!adsSnapshot ? <p className="text-xs text-[#9CA3AF]">Wybierz dostawcę, aby wczytać dane.</p> : <div className="space-y-5">
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded border border-[#374151] bg-[#111827] p-4"><div><p className="text-xs font-semibold text-white">{adsSnapshot.accounts.length} kont reklamowych</p><p className="mt-1 text-[10px] text-[#9CA3AF]">{adsSnapshot.message}</p></div><span className="rounded border border-[#4B5563] px-2 py-1 font-mono text-[9px] uppercase text-[#D1D5DB]">{adsSnapshot.status}</span></div>
+              {adsSnapshot.accounts.length > 0 && <div className="overflow-x-auto rounded border border-[#374151]"><table className="w-full text-left text-[11px]"><thead className="bg-[#111827] text-[9px] uppercase text-[#9CA3AF]"><tr><th className="px-3 py-2">Konto reklamowe</th><th className="px-3 py-2">Status</th><th className="px-3 py-2">Wydatki</th><th className="px-3 py-2">Saldo</th></tr></thead><tbody>{adsSnapshot.accounts.map((account) => <tr className="border-t border-[#374151]" key={account.id}><td className="px-3 py-2 text-[#D1D5DB]">{account.name || account.id} <span className="font-mono text-[9px] text-[#9CA3AF]">{account.id}</span></td><td className="px-3 py-2 text-[#D1D5DB]">{account.status || "—"}</td><td className="px-3 py-2 text-[#D1D5DB]">{account.spend === null ? "—" : `${account.spend.toFixed(2)} ${account.currency}`}</td><td className="px-3 py-2 text-[#D1D5DB]">{account.balance === null ? "—" : `${account.balance.toFixed(2)} ${account.currency}`}</td></tr>)}</tbody></table></div>}
+              {adsSnapshot.accounts.length > 0 && <div className="flex flex-wrap gap-2"><select className={`${inputClass} max-w-xl`} onChange={(event) => setSelectedAdAccount(event.target.value)} value={selectedAdAccount || snapshot?.integrations.find((item) => item.provider === adsProvider)?.accountName || ""}><option value="">Wybierz konto do raportowania kampanii</option>{adsSnapshot.accounts.map((account) => <option key={account.id} value={account.id}>{account.name || account.id} · {account.id}</option>)}</select><button className={buttonClass} disabled={busy || !selectedAdAccount} onClick={() => void saveAdsAccount()} type="button">Ustaw konto</button></div>}
+              {adsSnapshot.campaigns.length > 0 && <div className="overflow-x-auto rounded border border-[#374151]"><table className="w-full min-w-[760px] text-left text-[11px]"><thead className="bg-[#111827] text-[9px] uppercase text-[#9CA3AF]"><tr>{["Kampania", "Status", "Budżet", "Wydatki (30 dni)", "Wyświetlenia", "Kliknięcia", "Konwersje"].map((title) => <th className="px-3 py-2" key={title}>{title}</th>)}</tr></thead><tbody>{adsSnapshot.campaigns.map((campaign) => <tr className="border-t border-[#374151]" key={campaign.id}><td className="px-3 py-2 text-[#D1D5DB]">{campaign.name || campaign.id}</td><td className="px-3 py-2 text-[#D1D5DB]">{campaign.status}</td><td className="px-3 py-2 text-[#D1D5DB]">{campaign.budget === null ? "—" : `${campaign.budget.toFixed(2)} ${campaign.currency} / ${campaign.budgetType}`}</td><td className="px-3 py-2 text-[#D1D5DB]">{campaign.spend.toFixed(2)} {campaign.currency}</td><td className="px-3 py-2 text-[#D1D5DB]">{campaign.impressions.toLocaleString("pl-PL")}</td><td className="px-3 py-2 text-[#D1D5DB]">{campaign.clicks.toLocaleString("pl-PL")}</td><td className="px-3 py-2 text-[#D1D5DB]">{campaign.conversions?.toLocaleString("pl-PL") ?? "—"}</td></tr>)}</tbody></table></div>}
+              {adsSnapshot.status === "connected" && ["facebook", "google_ads"].includes(adsSnapshot.provider) && snapshot?.integrations.find((item) => item.provider === adsProvider)?.accountName && <form className="rounded border border-blue-500/30 bg-[#111827] p-4" onSubmit={(event) => void createAdCampaign(event)}><h2 className="mb-3 text-xs font-semibold text-white">Nowa kampania {adsSnapshot.provider === "facebook" ? "Meta" : "Google"} · domyślnie wstrzymana</h2><div className="grid gap-3 sm:grid-cols-[1fr_1fr_auto]"><input className={inputClass} onChange={(event) => setCampaignName(event.target.value)} placeholder="Nazwa kampanii" value={campaignName} />{adsSnapshot.provider === "facebook" ? <select className={inputClass} onChange={(event) => setCampaignObjective(event.target.value)} value={campaignObjective}><option value="OUTCOME_TRAFFIC">Ruch</option><option value="OUTCOME_AWARENESS">Rozpoznawalność</option><option value="OUTCOME_ENGAGEMENT">Aktywność</option><option value="OUTCOME_LEADS">Leady</option><option value="OUTCOME_SALES">Sprzedaż</option><option value="OUTCOME_APP_PROMOTION">Promocja aplikacji</option></select> : <input className={inputClass} min="1" onChange={(event) => setCampaignBudget(event.target.value)} placeholder="Budżet dzienny" step="0.01" type="number" value={campaignBudget} />}<button className={primaryButtonClass} disabled={busy || !campaignName.trim()} type="submit">Utwórz PAUSED</button></div><p className="mt-2 text-[10px] text-[#9CA3AF]">Utworzona kampania pozostaje PAUSED i nie emituje reklam. Google Ads wymaga budżetu; kampania Search jest tworzona z ręcznym CPC.</p></form>}
+            </div>}
+            <div className="mt-5 rounded border border-[#374151] bg-[#111827] p-4"><h2 className="text-xs font-semibold text-white">Konfiguracja API</h2><p className="mt-1 text-[10px] leading-4 text-[#9CA3AF]">Meta: ustaw access token i ID konta w Integrations. Google Ads: zapisz JSON danych OAuth/developer token jako sekret oraz Customer ID w polu Konto. OLX public API nie udostępnia kampanii i wydatków reklamowych. Allegro Ads wymaga osobnego dostępu do oficjalnego API Ads.</p><Link className="mt-3 inline-flex text-xs font-semibold text-blue-200 underline" href="#integrations" onClick={() => void changeSection("integrations")}>Otwórz Integrations</Link></div>
+          </section>}
+
           {section === "integrations" && <section className="rounded-xl border border-blue-500/30 bg-[#111827] p-4 sm:p-6">
             <SectionHeading detail="Edytuj dane połączeń. Klucze są szyfrowane po stronie serwera i nie są odczytywane z powrotem do przeglądarki." eyebrow="Connections / Providers" mode="edit" title="Integrations" />
-            {!snapshot ? <p className="text-sm text-slate-500">Ładowanie integracji…</p> : <div className="divide-y divide-white/8">{snapshot.integrations.map((integration) => <form className="grid gap-5 py-5 lg:grid-cols-[190px_minmax(0,1fr)]" key={integration.provider} onSubmit={(event) => void saveIntegration(event, integration)}><div><h2 className="text-sm font-semibold capitalize text-white">{integration.provider}</h2><p className="mt-1 font-mono text-[9px] uppercase tracking-wider text-slate-500">{integration.status}</p><p className="mt-2 text-[10px] text-slate-600">{integration.hasSecret ? "Sekret zapisany" : "Sekret nieustawiony"}</p></div><div className="grid gap-3 sm:grid-cols-2"><Field label="Nazwa" onChange={(value) => updateIntegration(integration.provider, "displayName", value)} value={integration.displayName} /><Field label="Konto / workspace" onChange={(value) => updateIntegration(integration.provider, "accountName", value)} value={integration.accountName} /><Field label="Endpoint" onChange={(value) => updateIntegration(integration.provider, "endpoint", value)} value={integration.endpoint} /><Field label="Webhook URL" onChange={(value) => updateIntegration(integration.provider, "webhookUrl", value)} value={integration.webhookUrl} /><Field label="Klucz publiczny" onChange={(value) => updateIntegration(integration.provider, "publicKey", value)} value={integration.publicKey} /><Field label="Token / secret" onChange={(value) => setIntegrationSecrets((previous) => ({ ...previous, [integration.provider]: value }))} placeholder={integration.hasSecret ? "Zapisany · wpisz, aby zastąpić" : "Wartość sekretna"} value={integrationSecrets[integration.provider] ?? ""} /><div className="flex justify-end sm:col-span-2"><button className={primaryButtonClass} disabled={busy} type="submit">Zapisz integrację</button></div></div></form>)}</div>}
+            {!snapshot ? <p className="text-sm text-slate-500">Ładowanie integracji…</p> : <div className="divide-y divide-white/8">{snapshot.integrations.map((integration) => <form className="grid gap-5 py-5 lg:grid-cols-[190px_minmax(0,1fr)]" key={integration.provider} onSubmit={(event) => void saveIntegration(event, integration)}><div><h2 className="text-sm font-semibold capitalize text-white">{integration.provider === "google_ads" ? "Google Ads" : integration.provider === "facebook" ? "Meta Ads" : integration.provider}</h2><p className="mt-1 font-mono text-[9px] uppercase tracking-wider text-slate-500">{integration.status}</p><p className="mt-2 text-[10px] text-slate-600">{integration.hasSecret ? "Sekret zapisany" : "Sekret nieustawiony"}</p></div><div className="grid gap-3 sm:grid-cols-2"><Field label="Nazwa" onChange={(value) => updateIntegration(integration.provider, "displayName", value)} value={integration.displayName} /><Field hint={integration.provider === "facebook" ? "ID konta Meta Ads, np. 123456789" : integration.provider === "google_ads" ? "Customer ID Google Ads (cyfry, bez myślników)" : undefined} label="Konto / workspace" onChange={(value) => updateIntegration(integration.provider, "accountName", value)} value={integration.accountName} /><Field label="Endpoint" onChange={(value) => updateIntegration(integration.provider, "endpoint", value)} value={integration.endpoint} /><Field label="Webhook URL" onChange={(value) => updateIntegration(integration.provider, "webhookUrl", value)} value={integration.webhookUrl} /><Field label="Klucz publiczny" onChange={(value) => updateIntegration(integration.provider, "publicKey", value)} value={integration.publicKey} /><Field hint={integration.provider === "google_ads" ? "JSON: developerToken, clientId, clientSecret, refreshToken, opcjonalnie loginCustomerId" : undefined} label={integration.provider === "google_ads" ? "Google Ads API credentials JSON" : "Token / secret"} onChange={(value) => setIntegrationSecrets((previous) => ({ ...previous, [integration.provider]: value }))} placeholder={integration.hasSecret ? "Zapisany · wpisz, aby zastąpić" : integration.provider === "google_ads" ? "{\"developerToken\":\"…\",\"clientId\":\"…\",\"clientSecret\":\"…\",\"refreshToken\":\"…\"}" : "Wartość sekretna"} value={integrationSecrets[integration.provider] ?? ""} /><div className="flex justify-end sm:col-span-2"><button className={primaryButtonClass} disabled={busy} type="submit">Zapisz integrację</button></div></div></form>)}</div>}
           </section>}
 
           <footer className="mt-12 flex flex-wrap items-center justify-between gap-2 border-t border-white/8 py-4 font-mono text-[9px] text-slate-600"><span>OWNER STUDIO · QUALITET ECOSYSTEM</span><span>Changes are recorded in the audit log</span></footer>

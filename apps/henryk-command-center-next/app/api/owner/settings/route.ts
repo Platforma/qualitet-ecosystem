@@ -19,6 +19,7 @@ const integrationProviders = [
   "github",
   "discord",
   "facebook",
+  "google_ads",
   "stripe",
   "allegro",
   "olx",
@@ -275,6 +276,46 @@ export async function POST(request: Request) {
       else await database.dropCollection(name);
       await writeAuditLog({ actorId: auth.user._id, action: `settings.collection.${body.action === "create-collection" ? "create" : "drop"}`, entity: name });
       return NextResponse.json({ success: true });
+    }
+
+    if (body.action === "create-document" || body.action === "add-field") {
+      const name = body.name;
+      if (typeof name !== "string" || !collectionNamePattern.test(name) || protectedCollections.has(name)) {
+        return NextResponse.json({ error: "Nazwa kolekcji jest niedozwolona." }, { status: 400 });
+      }
+      const database = await getDatabase();
+      const exists = await database.listCollections({ name }, { nameOnly: true }).hasNext();
+      if (!exists) return NextResponse.json({ error: "Nie znaleziono kolekcji." }, { status: 404 });
+
+      if (body.action === "create-document") {
+        const document = isRecord(body.document) ? sanitizeImportRecord(body.document) : null;
+        if (!document) return NextResponse.json({ error: "Dokument zawiera nieprawidłowe dane." }, { status: 400 });
+        const result = await getCollection(name).then((items) =>
+          items.insertOne({ ...document, createdAt: now, updatedAt: now, createdBy: auth.user._id }),
+        );
+        await writeAuditLog({ actorId: auth.user._id, action: "settings.collection.document.create", entity: name, entityId: String(result.insertedId) });
+        return NextResponse.json({ success: true, id: String(result.insertedId) }, { status: 201 });
+      }
+
+      const field = body.field;
+      const value = body.value;
+      if (
+        typeof field !== "string" || !/^[a-zA-Z][a-zA-Z0-9_]{0,63}$/.test(field) ||
+        ["_id", "createdAt", "createdBy", "updatedAt", "updatedBy", "archivedAt", "passwordHash"].includes(field) ||
+        !["string", "number", "boolean"].includes(typeof value) ||
+        (typeof value === "string" && (value.length > 10_000 || value.includes("\0"))) ||
+        (typeof value === "number" && !Number.isFinite(value))
+      ) {
+        return NextResponse.json({ error: "Pole musi mieć bezpieczną nazwę i wartość tekstową, liczbową lub logiczną." }, { status: 400 });
+      }
+      const result = await getCollection(name).then((items) =>
+        items.updateMany(
+          { [field]: { $exists: false }, archivedAt: { $exists: false } },
+          { $set: { [field]: value, updatedAt: now, updatedBy: auth.user._id } },
+        ),
+      );
+      await writeAuditLog({ actorId: auth.user._id, action: "settings.collection.field.add", entity: name, entityId: field });
+      return NextResponse.json({ success: true, modified: result.modifiedCount });
     }
 
     if (body.action === "import-collection") {
