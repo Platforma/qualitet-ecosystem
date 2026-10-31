@@ -1,5 +1,7 @@
 import { MongoClient } from "mongodb";
 import { connection, NextResponse } from "next/server";
+import { requireUser } from "../../../lib/server/auth";
+import { getCollection } from "../../../lib/server/database";
 
 type IntegrationState = "connected" | "unavailable" | "unconfigured";
 
@@ -142,7 +144,7 @@ async function checkIntegrations(): Promise<IntegrationsResponse> {
       : Promise.resolve(false),
   ]);
 
-  return {
+  const body: IntegrationsResponse = {
     checkedAt: new Date().toISOString(),
     integrations: [
       createStatus("cloudflare", Boolean(cloudflareToken), cloudflare),
@@ -152,10 +154,37 @@ async function checkIntegrations(): Promise<IntegrationsResponse> {
       createStatus("github", Boolean(githubToken), github),
     ],
   };
+  if (mongodb) {
+    const collection = await getCollection("integrations");
+    await Promise.all(
+      body.integrations.map((integration) =>
+        collection.updateOne(
+          { provider: integration.id },
+          {
+            $set: {
+              status: integration.state,
+              message: integration.message,
+              verification: "live_check",
+              checkedAt: new Date(body.checkedAt),
+              updatedAt: new Date(),
+            },
+            $setOnInsert: {
+              provider: integration.id,
+              createdAt: new Date(),
+            },
+          },
+          { upsert: true },
+        ),
+      ),
+    );
+  }
+  return body;
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const auth = await requireUser(request);
+    if ("response" in auth) return auth.response;
     await connection();
 
     if (cachedResponse && cachedResponse.expiresAt > Date.now()) {

@@ -119,7 +119,6 @@ export default function SystemHealth() {
     <article
       aria-labelledby="system-health-heading"
       className="rounded-xl border border-slate-200/80 bg-white shadow-sm shadow-slate-200/40"
-      id="system-health"
     >
       <header className="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-4 sm:px-6">
         <div>

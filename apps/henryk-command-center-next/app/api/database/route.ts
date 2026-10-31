@@ -1,6 +1,7 @@
 import { MongoClient } from "mongodb";
 import { connection, NextResponse } from "next/server";
 import { databaseCollections } from "../../../lib/database-collections";
+import { requireUser } from "../../../lib/server/auth";
 
 type CollectionState = "present" | "missing" | "unavailable" | "unconfigured";
 type DatabaseState = "connected" | "unavailable" | "unconfigured";
@@ -86,6 +87,8 @@ async function checkDatabase(): Promise<DatabaseResponse> {
 }
 
 export async function GET(request: Request) {
+  const auth = await requireUser(request);
+  if ("response" in auth) return auth.response;
   try {
     await connection();
     const forceRefresh =

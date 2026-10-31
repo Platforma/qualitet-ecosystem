@@ -3,9 +3,10 @@ import alertsData from "../../../data/alerts.json";
 import aiStatusData from "../../../data/ai-status.json";
 import businessData from "../../../data/business.json";
 import systemStatusData from "../../../data/system-status.json";
-import DatabaseStatus from "./database-status";
 import IntegrationsStatus from "./integrations-status";
+import ManagementCenters from "./management-centers";
 import SystemHealth from "./system-health";
+import UserSession from "./user-session";
 
 type IconName =
   | "activity"
@@ -133,13 +134,28 @@ function Icon({
 const navigation: { label: string; icon: IconName; href: string }[] = [
   { label: "Dashboard", icon: "grid", href: "#dashboard" },
   { label: "AI Center", icon: "sparkles", href: "#ai-center" },
-  { label: "Alert Center", icon: "alert", href: "#alert-center" },
-  { label: "Memory Center", icon: "brain", href: "#memory-center" },
-  { label: "Business Center", icon: "briefcase", href: "#business-center" },
-  { label: "World Intelligence", icon: "globe", href: "#world-intelligence" },
-  { label: "Integracje", icon: "link", href: "#integracje" },
+  { label: "AI Tasks", icon: "activity", href: "#ai-tasks" },
+  { label: "AI Memory", icon: "brain", href: "#ai-memory" },
+  { label: "AI Logs", icon: "activity", href: "#ai-logs" },
   { label: "CRM", icon: "users", href: "#crm" },
   { label: "Marketplace", icon: "shop", href: "#marketplace" },
+  { label: "Shops", icon: "shop", href: "#shops" },
+  { label: "Cloudflare", icon: "cloud", href: "#cloudflare" },
+  { label: "MongoDB", icon: "server", href: "#mongodb" },
+  { label: "GitHub", icon: "link", href: "#github" },
+  { label: "Render", icon: "cloud", href: "#render" },
+  { label: "Ollama", icon: "sparkles", href: "#ollama" },
+  { label: "Discord", icon: "users", href: "#discord" },
+  { label: "Stripe", icon: "briefcase", href: "#stripe" },
+  { label: "Facebook", icon: "globe", href: "#facebook" },
+  { label: "Allegro", icon: "shop", href: "#allegro" },
+  { label: "OLX", icon: "shop", href: "#olx" },
+  { label: "Analytics", icon: "activity", href: "#analytics" },
+  { label: "Users", icon: "users", href: "#users" },
+  { label: "Subscriptions", icon: "briefcase", href: "#subscriptions" },
+  { label: "Payments", icon: "briefcase", href: "#payments" },
+  { label: "System Health", icon: "server", href: "#system-health" },
+  { label: "Owner Studio", icon: "sparkles", href: "#owner-studio" },
 ];
 
 const formatCurrency = (value: number) =>
@@ -206,7 +222,10 @@ export default function Home() {
           </span>
         </a>
 
-        <nav aria-label="Nawigacja główna" className="flex-1 px-3 py-6">
+        <nav
+          aria-label="Nawigacja główna"
+          className="flex-1 overflow-y-auto px-3 py-6"
+        >
           <p className="px-3 pb-3 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
             Workspace
           </p>
@@ -239,7 +258,7 @@ export default function Home() {
           </p>
           <a
             className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] font-medium text-slate-500 transition hover:bg-slate-50 hover:text-slate-900"
-            href="#ustawienia"
+            href="#settings"
           >
             <Icon className="size-4.5" name="settings" />
             Ustawienia
@@ -277,6 +296,7 @@ export default function Home() {
             </div>
           </div>
           <div className="flex items-center gap-3">
+            <UserSession />
             <span className="hidden items-center gap-2 rounded-full border border-slate-200 px-3 py-1.5 text-[11px] font-medium text-slate-500 sm:flex">
               <span className="size-1.5 rounded-full bg-emerald-500" />
               Widok danych JSON
@@ -402,94 +422,7 @@ export default function Home() {
             <SystemHealth />
           </div>
 
-          <div className="mt-8">
-            <DatabaseStatus />
-          </div>
-
-          <section aria-label="Moduły centrum" className="mt-8" id="moduly">
-            <div className="mb-4">
-              <h2 className="text-sm font-semibold text-slate-800">
-                Moduły centrum
-              </h2>
-              <p className="mt-1 text-[11px] text-slate-400">
-                Przejdź do obszaru, który chcesz rozwijać.
-              </p>
-            </div>
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-              {[
-                {
-                  id: "ai-center",
-                  title: "AI Center",
-                  description: `${aiAgents} agentów AI ze statusem ONLINE`,
-                  icon: "sparkles" as const,
-                },
-                {
-                  id: "memory-center",
-                  title: "Memory Center",
-                  description: "Baza wiedzy i pamięć projektu",
-                  icon: "brain" as const,
-                },
-                {
-                  id: "business-center",
-                  title: "Business Center",
-                  description: `${businessData.users} użytkowników · ${businessData.leads} leadów`,
-                  icon: "briefcase" as const,
-                },
-                {
-                  id: "world-intelligence",
-                  title: "World Intelligence",
-                  description: "Przegląd informacji i rynków",
-                  icon: "globe" as const,
-                },
-                {
-                  id: "crm",
-                  title: "CRM",
-                  description: `${businessData.companies} firm w danych projektu`,
-                  icon: "users" as const,
-                },
-                {
-                  id: "marketplace",
-                  title: "Marketplace",
-                  description: "Ekosystem Qualitet Market",
-                  icon: "shop" as const,
-                },
-                {
-                  id: "ustawienia",
-                  title: "Ustawienia",
-                  description: "Konfiguracja centrum dowodzenia",
-                  icon: "settings" as const,
-                },
-                {
-                  id: "integracje",
-                  title: "Integracje",
-                  description: "Test połączeń z usługami",
-                  icon: "link" as const,
-                },
-              ].map((module) => (
-                <a
-                  className="group rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm shadow-slate-200/30 transition hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-md hover:shadow-indigo-100/50"
-                  href={`#${module.id}`}
-                  key={module.id}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="flex size-9 items-center justify-center rounded-lg bg-slate-50 text-slate-500 transition group-hover:bg-indigo-50 group-hover:text-indigo-600">
-                      <Icon className="size-4.25" name={module.icon} />
-                    </span>
-                    <Icon
-                      className="size-4 text-slate-300 transition group-hover:text-indigo-500"
-                      name="arrow"
-                    />
-                  </div>
-                  <h3 className="mt-4 text-xs font-semibold text-slate-800">
-                    {module.title}
-                  </h3>
-                  <p className="mt-1 text-[10px] leading-4 text-slate-400">
-                    {module.description}
-                  </p>
-                </a>
-              ))}
-            </div>
-          </section>
+          <ManagementCenters />
 
           <footer className="mt-10 flex flex-col justify-between gap-2 border-t border-slate-200/80 py-5 text-[10px] text-slate-400 sm:flex-row">
             <span>Henryk Command Center · Qualitet Ecosystem</span>
