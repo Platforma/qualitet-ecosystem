@@ -1,12 +1,38 @@
-name: Deploy
+﻿name: Deploy
 
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Deploy
-        run: echo "Deploy OK"
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate Render Secret
+        run: |
+          if [ -z "${{ secrets.RENDER_DEPLOY_HOOK_URL }}" ]; then
+            echo "ERROR: Missing RENDER_DEPLOY_HOOK_URL"
+            exit 1
+          fi
+
+      - name: Trigger Render Deploy
+        run: |
+          STATUS=$(curl \
+            --silent \
+            --output /dev/null \
+            --write-out "%{http_code}" \
+            -X POST \
+            "${{ secrets.RENDER_DEPLOY_HOOK_URL }}")
+
+          if [ "$STATUS" -lt 200 ] || [ "$STATUS" -ge 300 ]; then
+            echo "Deploy failed. HTTP $STATUS"
+            exit 1
+          fi
+
+          echo "Deploy triggered successfully"

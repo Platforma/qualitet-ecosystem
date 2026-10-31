@@ -3,6 +3,7 @@ import alertsData from "../../../data/alerts.json";
 import aiStatusData from "../../../data/ai-status.json";
 import businessData from "../../../data/business.json";
 import systemStatusData from "../../../data/system-status.json";
+import DatabaseStatus from "./database-status";
 import IntegrationsStatus from "./integrations-status";
 
 type IconName =
@@ -188,7 +189,7 @@ export default function Home() {
     >
       <aside className="fixed inset-y-0 left-0 z-20 hidden w-64 flex-col border-r border-slate-200/80 bg-white lg:flex">
         <a
-          className="flex h-[76px] items-center gap-3 border-b border-slate-100 px-6"
+          className="flex h-19 items-center gap-3 border-b border-slate-100 px-6"
           href="#dashboard"
         >
           <span className="flex size-10 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-sm shadow-indigo-200">
@@ -220,7 +221,7 @@ export default function Home() {
                   }`}
                   href={item.href}
                 >
-                  <Icon className="size-[18px]" name={item.icon} />
+                  <Icon className="size-4.5" name={item.icon} />
                   {item.label}
                   {item.label === "Alert Center" && alertCount > 0 && (
                     <span className="ml-auto rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
@@ -239,7 +240,7 @@ export default function Home() {
             className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] font-medium text-slate-500 transition hover:bg-slate-50 hover:text-slate-900"
             href="#ustawienia"
           >
-            <Icon className="size-[18px]" name="settings" />
+            <Icon className="size-4.5" name="settings" />
             Ustawienia
           </a>
         </nav>
@@ -262,10 +263,10 @@ export default function Home() {
       </aside>
 
       <div className="lg:pl-64">
-        <header className="sticky top-0 z-10 flex h-[76px] items-center justify-between border-b border-slate-200/80 bg-white/90 px-5 backdrop-blur-md sm:px-8">
+        <header className="sticky top-0 z-10 flex h-19 items-center justify-between border-b border-slate-200/80 bg-white/90 px-5 backdrop-blur-md sm:px-8">
           <div className="flex items-center gap-3">
             <span className="flex size-9 items-center justify-center rounded-lg bg-indigo-600 text-white lg:hidden">
-              <Icon name="sparkles" className="size-[18px]" />
+              <Icon name="sparkles" className="size-4.5" />
             </span>
             <div>
               <p className="text-sm font-semibold">Dashboard</p>
@@ -284,7 +285,7 @@ export default function Home() {
               className="relative flex size-9 items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition hover:bg-slate-50"
               href="#alert-center"
             >
-              <Icon name="alert" className="size-[17px]" />
+              <Icon name="alert" className="size-4.25" />
               {alertCount > 0 && (
                 <span className="absolute right-1.5 top-1.5 size-1.5 rounded-full bg-amber-500" />
               )}
@@ -299,7 +300,7 @@ export default function Home() {
           </div>
         </header>
 
-        <main className="mx-auto max-w-[1440px] px-5 py-8 sm:px-8 sm:py-10">
+        <main className="mx-auto max-w-360 px-5 py-8 sm:px-8 sm:py-10">
           <section className="mb-8 flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
             <div>
               <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-indigo-600">
@@ -336,7 +337,7 @@ export default function Home() {
                     {metric.label}
                   </p>
                   <span className="flex size-9 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
-                    <Icon className="size-[18px]" name={metric.icon} />
+                    <Icon className="size-4.5" name={metric.icon} />
                   </span>
                 </div>
                 <p className="mt-3 text-[26px] font-bold tracking-tight text-slate-900">
@@ -395,6 +396,10 @@ export default function Home() {
               </ul>
             </article>
           </section>
+
+          <div className="mt-8">
+            <DatabaseStatus />
+          </div>
 
           <section aria-label="Moduły centrum" className="mt-8" id="moduly">
             <div className="mb-4">
@@ -463,7 +468,7 @@ export default function Home() {
                 >
                   <div className="flex items-center justify-between">
                     <span className="flex size-9 items-center justify-center rounded-lg bg-slate-50 text-slate-500 transition group-hover:bg-indigo-50 group-hover:text-indigo-600">
-                      <Icon className="size-[17px]" name={module.icon} />
+                      <Icon className="size-4.25" name={module.icon} />
                     </span>
                     <Icon
                       className="size-4 text-slate-300 transition group-hover:text-indigo-500"
