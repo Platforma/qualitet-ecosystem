@@ -1,7 +1,6 @@
-import { MongoClient } from "mongodb";
 import { connection, NextResponse } from "next/server";
 import { requireUser } from "../../../lib/server/auth";
-import { getCollection } from "../../../lib/server/database";
+import { getCollection, getDatabase } from "../../../lib/server/database";
 
 type IntegrationState = "connected" | "unavailable" | "unconfigured";
 
@@ -41,25 +40,13 @@ async function checkHttpEndpoint(
 }
 
 async function checkMongoDb(uri: string): Promise<boolean> {
-  const client = new MongoClient(uri, {
-    connectTimeoutMS: 4_000,
-    maxPoolSize: 1,
-    minPoolSize: 0,
-    serverSelectionTimeoutMS: 4_000,
-  });
-
+  if (!uri.trim()) return false;
   try {
-    await client.connect();
-    await client.db().admin().command({ ping: 1 });
+    const database = await getDatabase();
+    await database.admin().command({ ping: 1 });
     return true;
   } catch {
     return false;
-  } finally {
-    try {
-      await client.close();
-    } catch {
-      // The connection status is already determined by the ping result.
-    }
   }
 }
 

@@ -310,6 +310,27 @@ export async function getDatabase(): Promise<Db> {
   return mongoGlobals.__qualitetMongoDatabasePromise;
 }
 
+export async function connectToMongoDB(): Promise<MongoClient> {
+  await getDatabase();
+  const client = mongoGlobals.__qualitetMongoClient;
+  if (!client) {
+    throw new Error("Nie udało się utworzyć połączenia MongoDB.");
+  }
+  return client;
+}
+
+export async function disconnectFromMongoDB(): Promise<void> {
+  const client = mongoGlobals.__qualitetMongoClient;
+  if (!client) {
+    return;
+  }
+
+  await client.close();
+  mongoGlobals.__qualitetMongoClient = undefined;
+  mongoGlobals.__qualitetMongoDatabasePromise = undefined;
+  mongoGlobals.__qualitetMongoIndexesPromise = undefined;
+}
+
 export async function getCollection<T extends Document = Document>(
   name: string,
 ): Promise<Collection<T>> {

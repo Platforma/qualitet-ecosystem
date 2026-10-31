@@ -1,42 +1,25 @@
-import { MongoClient } from "mongodb";
 import { connection, NextResponse } from "next/server";
-import { getCollection } from "../../../lib/server/database";
+import { getCollection, getDatabase } from "../../../lib/server/database";
 
 type DependencyState = "connected" | "unavailable" | "unconfigured";
 
-async function checkMongoDb(uri: string): Promise<DependencyState> {
-  let client: MongoClient | undefined;
-
+async function checkMongoDb(): Promise<DependencyState> {
+  if (!process.env.MONGODB_URI?.trim()) {
+    return "unconfigured";
+  }
   try {
-    client = new MongoClient(uri, {
-      connectTimeoutMS: 3_000,
-      maxPoolSize: 1,
-      minPoolSize: 0,
-      serverSelectionTimeoutMS: 3_000,
-    });
-    await client.connect();
-    await client.db().admin().command({ ping: 1 });
+    const database = await getDatabase();
+    await database.admin().command({ ping: 1 });
     return "connected";
   } catch {
     return "unavailable";
-  } finally {
-    if (client) {
-      try {
-        await client.close();
-      } catch {
-        // The ping result determines the dependency status.
-      }
-    }
   }
 }
 
 export async function GET() {
   await connection();
 
-  const mongodbUri = process.env.MONGODB_URI;
-  const databaseState = mongodbUri
-    ? await checkMongoDb(mongodbUri)
-    : "unconfigured";
+  const databaseState = await checkMongoDb();
   let systemHealthStored: boolean | null = null;
   if (databaseState === "connected") {
     try {

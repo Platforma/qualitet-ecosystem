@@ -1,7 +1,7 @@
-import { MongoClient } from "mongodb";
 import { connection, NextResponse } from "next/server";
 import { databaseCollections } from "../../../lib/database-collections";
 import { requireUser } from "../../../lib/server/auth";
+import { getDatabase } from "../../../lib/server/database";
 
 type CollectionState = "present" | "missing" | "unavailable" | "unconfigured";
 type DatabaseState = "connected" | "unavailable" | "unconfigured";
@@ -58,16 +58,8 @@ async function checkDatabase(): Promise<DatabaseResponse> {
     return createResponse("unconfigured", "unconfigured");
   }
 
-  const client = new MongoClient(uri, {
-    connectTimeoutMS: 4_000,
-    maxPoolSize: 1,
-    minPoolSize: 0,
-    serverSelectionTimeoutMS: 4_000,
-  });
-
   try {
-    await client.connect();
-    const database = client.db(databaseName);
+    const database = await getDatabase();
     await database.admin().command({ ping: 1 });
     const collections = await database
       .listCollections({}, { nameOnly: true })
@@ -77,12 +69,6 @@ async function checkDatabase(): Promise<DatabaseResponse> {
     return createResponse("connected", "present", presentNames);
   } catch {
     return createResponse("unavailable", "unavailable");
-  } finally {
-    try {
-      await client.close();
-    } catch {
-      // The collection status has already been determined.
-    }
   }
 }
 
