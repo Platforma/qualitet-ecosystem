@@ -5,6 +5,7 @@ import businessData from "../../../data/business.json";
 import systemStatusData from "../../../data/system-status.json";
 import DatabaseStatus from "./database-status";
 import IntegrationsStatus from "./integrations-status";
+import SystemHealth from "./system-health";
 
 type IconName =
   | "activity"
@@ -396,6 +397,10 @@ export default function Home() {
               </ul>
             </article>
           </section>
+
+          <div className="mt-5">
+            <SystemHealth />
+          </div>
 
           <div className="mt-8">
             <DatabaseStatus />
