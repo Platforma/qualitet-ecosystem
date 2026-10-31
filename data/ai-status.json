@@ -1,17 +1,17 @@
 {
-  "AI_QUALITET": {
-    "status": "ONLINE"
-  },
-  "AI_DEVELOPER": {
-    "status": "ONLINE"
-  },
-  "AI_GRAFIK_SZEF": {
-    "status": "ONLINE"
-  },
-  "AI_MARKETING": {
-    "status": "ONLINE"
-  },
-  "AI_SEO": {
-    "status": "ONLINE"
-  }
+  "AI_QUALITET": { "status": "PROMPT_READY", "runtime": "NOT_CHECKED" },
+  "AI_DEVELOPER": { "status": "PROMPT_READY", "runtime": "NOT_CHECKED" },
+  "AI_GRAFIK_SZEF": { "status": "PROMPT_READY", "runtime": "NOT_CHECKED" },
+  "AI_MARKETING": { "status": "PROMPT_READY", "runtime": "NOT_CHECKED" },
+  "AI_SEO": { "status": "PROMPT_READY", "runtime": "NOT_CHECKED" },
+  "AI_BIZNES": { "status": "PROMPT_READY", "runtime": "NOT_CHECKED" },
+  "AI_RESEARCH": { "status": "PROMPT_READY", "runtime": "NOT_CHECKED" },
+  "AI_SUPPORT": { "status": "PROMPT_READY", "runtime": "NOT_CHECKED" },
+  "AI_CLOUD": { "status": "PROMPT_READY", "runtime": "NOT_CHECKED" },
+  "AI_OWNER": { "status": "PROMPT_READY", "runtime": "NOT_CHECKED" },
+  "AI_HELPDESK": { "status": "PROMPT_READY", "runtime": "NOT_CHECKED" },
+  "AI_SALES": { "status": "PROMPT_READY", "runtime": "NOT_CHECKED" },
+  "AI_CRM": { "status": "PROMPT_READY", "runtime": "NOT_CHECKED" },
+  "AI_CONTENT": { "status": "PROMPT_READY", "runtime": "NOT_CHECKED" },
+  "AI_SOCIAL_MEDIA": { "status": "PROMPT_READY", "runtime": "NOT_CHECKED" }
 }

@@ -1,34 +1,81 @@
 {
-  "version": "1.0",
+  "version": "2.0",
   "orchestrator": "AI_QUALITET",
   "agents": [
     {
       "name": "AI_QUALITET",
-      "role": "orchestrator"
+      "role": "orchestrator",
+      "prompt": "ai/agents/prompts/AI_QUALITET.md"
     },
     {
       "name": "AI_DEVELOPER",
-      "role": "developer"
+      "role": "developer",
+      "prompt": "ai/agents/prompts/AI_DEVELOPER.md"
     },
     {
       "name": "AI_GRAFIK_SZEF",
-      "role": "designer"
+      "role": "designer",
+      "prompt": "ai/agents/prompts/AI_GRAFIK_SZEF.md"
     },
     {
       "name": "AI_MARKETING",
-      "role": "marketing"
+      "role": "marketing",
+      "prompt": "ai/agents/prompts/AI_MARKETING.md"
     },
     {
       "name": "AI_SEO",
-      "role": "seo"
+      "role": "seo",
+      "prompt": "ai/agents/prompts/AI_SEO.md"
     },
     {
       "name": "AI_RESEARCH",
-      "role": "research"
+      "role": "research",
+      "prompt": "ai/agents/prompts/AI_RESEARCH.md"
     },
     {
       "name": "AI_BIZNES",
-      "role": "business"
+      "role": "business",
+      "prompt": "ai/agents/prompts/AI_BIZNES.md"
+    },
+    {
+      "name": "AI_SUPPORT",
+      "role": "support",
+      "prompt": "ai/agents/prompts/AI_SUPPORT.md"
+    },
+    {
+      "name": "AI_CLOUD",
+      "role": "cloud",
+      "prompt": "ai/agents/prompts/AI_CLOUD.md"
+    },
+    {
+      "name": "AI_OWNER",
+      "role": "owner",
+      "prompt": "ai/agents/prompts/AI_OWNER.md"
+    },
+    {
+      "name": "AI_HELPDESK",
+      "role": "helpdesk",
+      "prompt": "ai/agents/prompts/AI_HELPDESK.md"
+    },
+    {
+      "name": "AI_SALES",
+      "role": "sales",
+      "prompt": "ai/agents/prompts/AI_SALES.md"
+    },
+    {
+      "name": "AI_CRM",
+      "role": "crm",
+      "prompt": "ai/agents/prompts/AI_CRM.md"
+    },
+    {
+      "name": "AI_CONTENT",
+      "role": "content",
+      "prompt": "ai/agents/prompts/AI_CONTENT.md"
+    },
+    {
+      "name": "AI_SOCIAL_MEDIA",
+      "role": "social-media",
+      "prompt": "ai/agents/prompts/AI_SOCIAL_MEDIA.md"
     }
   ]
 }

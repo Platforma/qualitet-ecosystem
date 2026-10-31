@@ -1,0 +1,5 @@
+{
+  "source": "GET /api/ai/logs",
+  "state": "requires_api_token_and_mongodb",
+  "items": []
+}

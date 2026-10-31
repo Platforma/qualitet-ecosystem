@@ -1,0 +1,8 @@
+{
+  "source": "GET /api/ai/health",
+  "state": "not_checked",
+  "ollama": "not_checked",
+  "model": "not_checked",
+  "memory": "not_checked",
+  "checkedAt": null
+}

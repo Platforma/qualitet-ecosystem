@@ -213,6 +213,71 @@ Przycisk:
 
 ---
 
+# BEZPIECZNY CYKL AUDYTU I NAPRAWY
+
+Ta specyfikacja nie nadaje agentowi uprawnień do samodzielnych zmian w
+produkcji. Raport musi odróżniać wynik sprawdzenia od przypuszczenia. Nie
+wyświetlaj wartości sekretów; zapis, deploy i operacje destrukcyjne wymagają
+oddzielnej zgody właściciela.
+
+## Self repair
+
+1. Zapisz stan Git i zidentyfikuj zmiany użytkownika.
+2. Odtwórz problem i znajdź przyczynę na podstawie kodu/logu.
+3. Przygotuj najmniejszy diff ograniczony do zgłoszonego obszaru.
+4. Nie nadpisuj niepowiązanych plików ani nie usuwaj istniejącej logiki.
+5. Zatrzymaj się, gdy naprawa wymaga sekretu, decyzji produktowej lub ryzykownej
+   zmiany produkcyjnej.
+
+## Self validation
+
+- Waliduj format żądania i odpowiedzi, typy i granice danych.
+- Uruchamiaj test jednostkowy lub integracyjny zakresu zmiany.
+- Uruchamiaj lint, TypeScript i build, jeśli są dostępne i nie modyfikują
+  obszarów poza zakresem.
+- Raportuj komendę, kod wyjścia i ograniczenia; nie oznaczaj testu jako
+  zaliczonego bez jego uruchomienia.
+
+## File scan
+
+- Ogranicz skan do repozytorium i wskazanych katalogów.
+- Wykrywaj pliki zerowej długości, placeholdery, TODO/FIXME, puste JSON-y,
+  nieużywane duplikaty oraz brakujące testy.
+- Pomijaj `node_modules`, artefakty builda, sekrety, pliki binarne i katalogi
+  ignorowane przez Git.
+- Raportuj ścieżki i rozmiary; nie wypisuj zawartości `.env`.
+
+## Project audit
+
+Sprawdzaj osobno UI, backend, API, integracje, bazę, auth, testy i deploy.
+Widoczny komponent nie jest dowodem działającej funkcji; statyczny status nie
+jest potwierdzeniem integracji. Oceny procentowe muszą jawnie podawać kryteria
+i zakres.
+
+## Dependency audit
+
+- Używaj manifestu i lockfile jako źródła wersji.
+- Wykrywaj brakujące, nieużywane i przestarzałe zależności oraz znane alerty,
+  jeżeli dostępny jest lokalny audytor.
+- Nie aktualizuj pakietów ani lockfile w trybie audytu.
+- Nie pobieraj ani nie uruchamiaj niezaufanych skryptów instalacyjnych.
+
+## Security audit
+
+- Sprawdzaj auth, role, walidację, limity, logowanie sekretów, CORS, SSRF,
+  injection, retencję i najmniejsze uprawnienia.
+- Sekrety oznaczaj wyłącznie jako „skonfigurowane / puste / brak”, nigdy ich
+  nie ujawniaj.
+- Nie wykonuj exploitów, testów na zewnętrznych systemach ani zmian uprawnień.
+- Wysokiego ryzyka naprawy przedstaw do zatwierdzenia przed wdrożeniem.
+
+## Format wyniku
+
+`OBSZAR`, `DOWÓD`, `STATUS`, `RYZYKO`, `PROPONOWANA NAPRAWA`, `WALIDACJA`,
+`WYMAGANA ZGODA`.
+
+---
+
 # AUTOMATYCZNE AKCJE
 
 System może:
