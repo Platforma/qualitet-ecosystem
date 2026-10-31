@@ -78,9 +78,9 @@ const collectionFields: Record<string, { key: string; label: string; numeric?: b
   ],
 };
 
-const inputClass = "w-full rounded-md border border-white/10 bg-[#0b1118] px-3 py-2.5 text-sm text-slate-100 outline-none transition placeholder:text-slate-600 focus:border-cyan-400/70 focus:ring-2 focus:ring-cyan-400/10";
-const buttonClass = "inline-flex items-center justify-center gap-2 rounded-md border border-white/10 bg-white/[0.06] px-3 py-2 text-xs font-semibold text-slate-200 transition hover:border-white/20 hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-45";
-const primaryButtonClass = "inline-flex items-center justify-center gap-2 rounded-md border border-cyan-300/20 bg-cyan-300 px-3.5 py-2 text-xs font-bold text-slate-950 transition hover:bg-cyan-200 disabled:cursor-not-allowed disabled:opacity-50";
+const inputClass = "w-full rounded-md border border-[#4B5563] bg-[#111827] px-3 py-2.5 text-sm text-white outline-none transition placeholder:text-[#9CA3AF] focus:border-[#3B82F6] focus:ring-2 focus:ring-blue-500/20";
+const buttonClass = "inline-flex items-center justify-center gap-2 rounded-md border border-[#374151] bg-[#1F2937] px-3 py-2 text-xs font-semibold text-[#D1D5DB] transition hover:border-[#4B5563] hover:bg-[#293548] disabled:cursor-not-allowed disabled:opacity-45";
+const primaryButtonClass = "inline-flex items-center justify-center gap-2 rounded-md border border-blue-400/40 bg-[#3B82F6] px-3.5 py-2 text-xs font-bold text-white transition hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-50";
 
 async function requestJson<T>(url: string, init?: RequestInit): Promise<T> {
   const response = await fetch(url, { cache: "no-store", ...init });
@@ -147,11 +147,28 @@ function TextArea({
   );
 }
 
-function SectionHeading({ eyebrow, title, detail }: { eyebrow: string; title: string; detail: string }) {
+function SectionHeading({
+  eyebrow,
+  title,
+  detail,
+  mode,
+}: {
+  eyebrow: string;
+  title: string;
+  detail: string;
+  mode: "edit" | "read" | "mixed";
+}) {
+  const editMode = mode === "edit" || mode === "mixed";
+  const readMode = mode === "read" || mode === "mixed";
+
   return (
-    <header className="mb-7 border-b border-white/8 pb-5">
+    <header className={`mb-7 border-b pb-5 ${editMode ? "border-blue-500/30" : "border-[#374151]"}`}>
       <p className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-cyan-300">{eyebrow}</p>
-      <h1 className="text-xl font-semibold text-white">{title}</h1>
+      <div className="flex flex-wrap items-center gap-2">
+        <h1 className="text-xl font-semibold text-[#F9FAFB]">{title}</h1>
+        {editMode && <span className="rounded border border-blue-400/30 bg-blue-500/10 px-2 py-1 font-mono text-[9px] font-semibold uppercase tracking-wide text-blue-200">Edycja</span>}
+        {readMode && <span className="rounded border border-[#4B5563] bg-[#1F2937] px-2 py-1 font-mono text-[9px] font-semibold uppercase tracking-wide text-[#D1D5DB]">Odczyt danych</span>}
+      </div>
       <p className="mt-1.5 max-w-2xl text-sm text-slate-400">{detail}</p>
     </header>
   );
@@ -410,8 +427,8 @@ export default function OwnerSettings() {
   const currentSection = sections.find((item) => item.id === section) ?? sections[0];
 
   return (
-    <div className="min-h-screen bg-[#080d13] text-slate-100">
-      <aside className="fixed inset-y-0 left-0 z-20 hidden w-62 flex-col border-r border-white/8 bg-[#0b1118] lg:flex">
+    <div className="min-h-screen bg-[#0B0F19] text-[#F9FAFB]">
+      <aside className="fixed inset-y-0 left-0 z-20 hidden w-62 flex-col border-r border-[#374151] bg-[#111827] lg:flex">
         <Link className="flex h-17 items-center gap-3 border-b border-white/8 px-5" href="/">
           <span className="flex size-8 items-center justify-center rounded-md border border-cyan-300/25 bg-cyan-300/10 font-mono text-[10px] font-bold text-cyan-200">Q/</span>
           <span><span className="block text-xs font-bold tracking-[0.08em] text-white">OWNER STUDIO</span><span className="mt-0.5 block text-[9px] font-medium uppercase tracking-[0.16em] text-slate-500">Qualitet Platform</span></span>
@@ -439,7 +456,7 @@ export default function OwnerSettings() {
       </aside>
 
       <div className="lg:pl-62">
-        <header className="sticky top-0 z-10 flex min-h-17 flex-wrap items-center justify-between gap-3 border-b border-white/8 bg-[#080d13]/95 px-5 backdrop-blur-md sm:px-7">
+        <header className="sticky top-0 z-10 flex min-h-17 flex-wrap items-center justify-between gap-3 border-b border-[#374151] bg-[#0B0F19]/95 px-5 backdrop-blur-md sm:px-7">
           <div><p className="text-xs font-semibold text-white">Owner Studio <span className="px-1.5 text-slate-600">/</span> <span className="text-slate-400">{currentSection.title}</span></p><p className="mt-1 font-mono text-[9px] text-slate-600">PLATFORM CONTROL CENTER</p></div>
           <div className="flex items-center gap-2"><span className="hidden items-center gap-2 rounded border border-white/8 px-2.5 py-1.5 text-[10px] text-slate-400 sm:flex"><span className="size-1.5 rounded-full bg-emerald-400" /> Owner access</span><Link className={buttonClass} href="/">← Dashboard</Link></div>
           <nav aria-label="Sekcje Settings" className="flex w-full gap-1 overflow-x-auto pb-2 lg:hidden">
@@ -451,8 +468,8 @@ export default function OwnerSettings() {
           {error && <div className="mb-5 flex items-start justify-between gap-3 border border-rose-400/20 bg-rose-400/6 px-4 py-3 text-xs text-rose-200" role="alert"><span>{error}</span><button aria-label="Zamknij komunikat" className="text-rose-200/70" onClick={() => setError("")} type="button">×</button></div>}
           {notice && <div className="mb-5 border border-emerald-400/20 bg-emerald-400/6 px-4 py-3 text-xs text-emerald-200" role="status">{notice}</div>}
 
-          {section === "prompts" && <section>
-            <SectionHeading detail="Przeglądaj, aktualizuj i testuj prompty bezpośrednio w panelu." eyebrow="AI / Prompt Library" title="AI Prompts" />
+          {section === "prompts" && <section className="rounded-xl border border-blue-500/30 bg-[#111827] p-4 sm:p-6">
+            <SectionHeading detail="Przeglądaj, aktualizuj i testuj prompty bezpośrednio w panelu." eyebrow="AI / Prompt Library" mode="edit" title="AI Prompts" />
             <div className="grid gap-6 xl:grid-cols-[270px_minmax(0,1fr)]">
               <div className="border-r border-white/8 pr-4">
                 <div className="mb-3 flex items-center justify-between"><span className="font-mono text-[10px] uppercase tracking-wider text-slate-500">Prompty projektu</span><span className="text-[10px] text-slate-600">{prompts.length}</span></div>
@@ -469,16 +486,16 @@ export default function OwnerSettings() {
             </div>
           </section>}
 
-          {section === "system" && <section>
-            <SectionHeading detail="Wartości są zapisywane jako konfiguracja platformy w MongoDB. Zmiany środowiskowe wymagają wdrożenia po stronie hostingu." eyebrow="Platform / Runtime" title="System Config" />
+          {section === "system" && <section className="rounded-xl border border-blue-500/30 bg-[#111827] p-4 sm:p-6">
+            <SectionHeading detail="Wartości są zapisywane jako konfiguracja platformy w MongoDB. Zmiany środowiskowe wymagają wdrożenia po stronie hostingu." eyebrow="Platform / Runtime" mode="edit" title="System Config" />
             {!snapshot ? <p className="text-sm text-slate-500">Ładowanie konfiguracji…</p> : <form className="max-w-3xl" onSubmit={(event) => void saveConfig(event)}>
               <div className="grid gap-x-6 gap-y-5 sm:grid-cols-2">{systemFields.map((field) => <Field hint={field.hint} key={field.key} label={field.label} onChange={(value) => updateConfig(field.key, value)} type={field.type} value={snapshot.config[field.key] ?? ""} />)}</div>
               <div className="mt-7 flex items-center justify-between border-t border-white/8 pt-5"><p className="max-w-md text-[10px] leading-4 text-slate-500">Ustawienia zapisane tutaj są dostępne dla panelu i jego funkcji konfiguracyjnych.</p><button className={primaryButtonClass} disabled={busy} type="submit">Zapisz konfigurację</button></div>
             </form>}
           </section>}
 
-          {section === "mongodb" && <section>
-            <SectionHeading detail="Stan połączenia, kolekcje, import i eksport danych." eyebrow="Data / MongoDB Atlas" title="MongoDB" />
+          {section === "mongodb" && <section className="rounded-xl border border-[#374151] bg-[#1F2937] p-4 sm:p-6">
+            <SectionHeading detail="Stan połączenia, kolekcje, import i eksport danych." eyebrow="Data / MongoDB Atlas" mode="read" title="MongoDB" />
             {!snapshot ? <p className="text-sm text-slate-500">Ładowanie informacji o bazie…</p> : <>
               <div className="mb-7 grid gap-5 border-b border-white/8 pb-6 sm:grid-cols-3"><div><p className="font-mono text-[9px] uppercase tracking-wider text-slate-600">Connection</p><p className="mt-2 flex items-center gap-2 text-sm text-slate-200"><span className="size-2 rounded-full bg-emerald-400" /> Połączono</p></div><div><p className="font-mono text-[9px] uppercase tracking-wider text-slate-600">Database</p><p className="mt-2 font-mono text-sm text-slate-200">{snapshot.database.name || "Nieznana"}</p></div><div><p className="font-mono text-[9px] uppercase tracking-wider text-slate-600">Collections</p><p className="mt-2 text-sm text-slate-200">{snapshot.database.collections.length} kolekcji</p></div></div>
               <div className="mb-8"><div className="mb-3 flex items-center justify-between"><h2 className="text-xs font-semibold text-white">Kolekcje</h2><form className="flex gap-2" onSubmit={(event) => void createCollection(event)}><input aria-label="Nazwa nowej kolekcji" className={`${inputClass} w-48 py-2 text-xs`} onChange={(event) => setNewCollection(event.target.value)} placeholder="nazwa_kolekcji" value={newCollection} /><button className={buttonClass} disabled={busy || !newCollection.trim()} type="submit">＋ Utwórz</button></form></div>
@@ -488,27 +505,27 @@ export default function OwnerSettings() {
             </>}
           </section>}
 
-          {(section === "crm" || section === "marketplace") && <section>
-            <SectionHeading detail={section === "crm" ? "Wybierz komórkę, zmień wartość i zapisz ją po opuszczeniu pola." : "Edytuj produkty, sklepy i ogłoszenia bezpośrednio w bazie."} eyebrow={section === "crm" ? "Customers / CRM" : "Commerce / Catalog"} title={section === "crm" ? "CRM" : "Marketplace"} />
+          {(section === "crm" || section === "marketplace") && <section className="rounded-xl border border-blue-500/30 bg-[#111827] p-4 sm:p-6">
+            <SectionHeading detail={section === "crm" ? "Wybierz komórkę, zmień wartość i zapisz ją po opuszczeniu pola." : "Edytuj produkty, sklepy i ogłoszenia bezpośrednio w bazie."} eyebrow={section === "crm" ? "Customers / CRM" : "Commerce / Catalog"} mode="mixed" title={section === "crm" ? "CRM" : "Marketplace"} />
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3"><div className="flex gap-1 border-b border-white/8">{(section === "crm" ? ["companies", "crm_contacts", "leads"] : ["products", "stores", "marketplace_ads"]).map((name) => <button className={`border-b-2 px-3 py-2 text-[10px] font-medium ${activeCollection === name ? "border-cyan-300 text-cyan-200" : "border-transparent text-slate-500 hover:text-slate-300"}`} key={name} onClick={() => changeCollection(name)} type="button">{name}</button>)}</div><span className="font-mono text-[9px] text-slate-600">{records.length} rekordów · wybierz komórkę do edycji</span></div>
-            <div className="overflow-x-auto border-y border-white/8"><table className="w-full min-w-190 border-collapse text-left"><thead><tr className="border-b border-white/8">{(collectionFields[activeCollection] ?? []).map((field) => <th className="px-2 py-2.5 font-mono text-[9px] font-medium uppercase tracking-wider text-slate-500" key={field.key}>{field.label}</th>)}</tr></thead><tbody className="divide-y divide-white/5">{records.map((record) => <tr className="group" key={record._id}>{(collectionFields[activeCollection] ?? []).map((field) => <td className="max-w-65 px-1.5 py-1" key={field.key}><input aria-label={`${field.label}: ${String(record.name ?? record.title ?? record._id)}`} className="w-full min-w-24 rounded-sm border border-transparent bg-transparent px-1.5 py-2 text-[11px] text-slate-300 outline-none transition hover:border-white/10 hover:bg-white/2.5 focus:border-cyan-300/50 focus:bg-[#0b1118]" defaultValue={String(record[field.key] ?? "")} onBlur={(event) => void saveCell(record, field, event.target.value)} type={field.numeric ? "number" : "text"} /></td>)}</tr>)}{records.length === 0 && <tr><td className="px-3 py-10 text-center text-xs text-slate-600" colSpan={collectionFields[activeCollection]?.length ?? 1}>Brak rekordów.</td></tr>}</tbody></table></div>
+            <div className="overflow-x-auto rounded-lg border border-[#374151] bg-[#1F2937]"><table className="w-full min-w-190 border-collapse text-left"><thead><tr className="border-b border-white/8">{(collectionFields[activeCollection] ?? []).map((field) => <th className="px-2 py-2.5 font-mono text-[9px] font-medium uppercase tracking-wider text-slate-500" key={field.key}>{field.label}</th>)}</tr></thead><tbody className="divide-y divide-white/5">{records.map((record) => <tr className="group" key={record._id}>{(collectionFields[activeCollection] ?? []).map((field) => <td className="max-w-65 px-1.5 py-1" key={field.key}><input aria-label={`${field.label}: ${String(record.name ?? record.title ?? record._id)}`} className="w-full min-w-24 rounded-sm border border-transparent bg-[#111827] px-1.5 py-2 text-[11px] text-slate-300 outline-none transition hover:border-white/10 hover:bg-[#293548] focus:border-[#3B82F6] focus:bg-[#111827]" defaultValue={String(record[field.key] ?? "")} onBlur={(event) => void saveCell(record, field, event.target.value)} type={field.numeric ? "number" : "text"} /></td>)}</tr>)}{records.length === 0 && <tr><td className="px-3 py-10 text-center text-xs text-slate-600" colSpan={collectionFields[activeCollection]?.length ?? 1}>Brak rekordów.</td></tr>}</tbody></table></div>
           </section>}
 
-          {section === "agents" && <section>
-            <SectionHeading detail="Zarządzaj definicją promptu, modelem i rolą agentów zapisanych w MongoDB." eyebrow="AI / Runtime" title="AI Agents" />
+          {section === "agents" && <section className="rounded-xl border border-blue-500/30 bg-[#111827] p-4 sm:p-6">
+            <SectionHeading detail="Zarządzaj definicją promptu, modelem i rolą agentów zapisanych w MongoDB." eyebrow="AI / Runtime" mode="edit" title="AI Agents" />
             {!snapshot ? <p className="text-sm text-slate-500">Ładowanie agentów…</p> : <div className="divide-y divide-white/8">{snapshot.agents.map((agent) => <form className="grid gap-5 py-6 lg:grid-cols-[220px_minmax(0,1fr)]" key={agent.agentId} onSubmit={(event) => void saveAgent(event, agent)}><div><h2 className="text-sm font-semibold text-white">{agent.name}</h2><p className="mt-1 font-mono text-[10px] text-slate-500">{agent.agentId}</p><span className="mt-3 inline-flex items-center gap-1.5 text-[10px] text-slate-500"><span className="size-1.5 rounded-full bg-cyan-300" />{agent.status}</span></div><div className="grid gap-4"><div className="grid gap-4 sm:grid-cols-2"><Field label="Model" onChange={(value) => updateAgent(agent.agentId, "model", value)} placeholder="np. llama3.1" value={agent.model} /><Field label="Rola" onChange={(value) => updateAgent(agent.agentId, "role", value)} placeholder="Rola agenta" value={agent.role} /></div><TextArea label="Prompt agenta" onChange={(value) => updateAgent(agent.agentId, "prompt", value)} rows={5} value={agent.prompt} /><div className="flex justify-end"><button className={primaryButtonClass} disabled={busy} type="submit">Zapisz agenta</button></div></div></form>)}{snapshot.agents.length === 0 && <p className="py-10 text-center text-xs text-slate-600">Brak agentów w bazie.</p>}</div>}
           </section>}
 
-          {section === "files" && <section>
-            <SectionHeading detail="Przeszukuj tekstowe pliki projektu, otwieraj podgląd i zapisuj zmiany z panelu." eyebrow="Workspace / Source" title="Files Center" />
+          {section === "files" && <section className="rounded-xl border border-blue-500/30 bg-[#111827] p-4 sm:p-6">
+            <SectionHeading detail="Przeszukuj tekstowe pliki projektu, otwieraj podgląd i zapisuj zmiany z panelu." eyebrow="Workspace / Source" mode="edit" title="Files Center" />
             <div className="grid min-h-[65vh] border border-white/8 lg:grid-cols-[280px_minmax(0,1fr)]">
               <div className="border-b border-white/8 lg:border-b-0 lg:border-r"><form className="flex gap-2 border-b border-white/8 p-3" onSubmit={(event) => void runFileSearch(event)}><input aria-label="Szukaj w plikach" className={`${inputClass} min-w-0 py-2 text-[11px]`} onChange={(event) => setFileQuery(event.target.value)} placeholder="Szukaj plików i treści" value={fileQuery} /><button aria-label="Uruchom wyszukiwanie" className={buttonClass} type="submit">⌕</button></form><div className="max-h-[65vh] overflow-y-auto p-2">{files.map((file) => <button className={`block w-full truncate rounded px-2.5 py-2 text-left font-mono text-[10px] ${selectedFile === file.path ? "bg-white/7 text-cyan-200" : "text-slate-400 hover:bg-white/4 hover:text-white"}`} key={file.path} onClick={() => void perform(() => openFile(file.path), "Plik otwarty.")} type="button">{file.path}</button>)}{files.length === 0 && <p className="px-2 py-6 text-[10px] text-slate-600">Brak wyników.</p>}</div></div>
               <div className="flex min-w-0 flex-col"><div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/8 px-4 py-3"><span className="truncate font-mono text-[10px] text-slate-400">{selectedFile || "Wybierz plik z listy"}</span><button className={primaryButtonClass} disabled={!selectedFile || busy} onClick={() => void saveFile()} type="button">Zapisz plik</button></div><textarea aria-label="Treść pliku" className="min-h-[55vh] flex-1 resize-none bg-[#090e14] p-4 font-mono text-[11px] leading-5 text-slate-300 outline-none" onChange={(event) => setFileContent(event.target.value)} spellCheck={false} value={fileContent} /></div>
             </div>
           </section>}
 
-          {section === "integrations" && <section>
-            <SectionHeading detail="Edytuj dane połączeń. Klucze są szyfrowane po stronie serwera i nie są odczytywane z powrotem do przeglądarki." eyebrow="Connections / Providers" title="Integrations" />
+          {section === "integrations" && <section className="rounded-xl border border-blue-500/30 bg-[#111827] p-4 sm:p-6">
+            <SectionHeading detail="Edytuj dane połączeń. Klucze są szyfrowane po stronie serwera i nie są odczytywane z powrotem do przeglądarki." eyebrow="Connections / Providers" mode="edit" title="Integrations" />
             {!snapshot ? <p className="text-sm text-slate-500">Ładowanie integracji…</p> : <div className="divide-y divide-white/8">{snapshot.integrations.map((integration) => <form className="grid gap-5 py-5 lg:grid-cols-[190px_minmax(0,1fr)]" key={integration.provider} onSubmit={(event) => void saveIntegration(event, integration)}><div><h2 className="text-sm font-semibold capitalize text-white">{integration.provider}</h2><p className="mt-1 font-mono text-[9px] uppercase tracking-wider text-slate-500">{integration.status}</p><p className="mt-2 text-[10px] text-slate-600">{integration.hasSecret ? "Sekret zapisany" : "Sekret nieustawiony"}</p></div><div className="grid gap-3 sm:grid-cols-2"><Field label="Nazwa" onChange={(value) => updateIntegration(integration.provider, "displayName", value)} value={integration.displayName} /><Field label="Konto / workspace" onChange={(value) => updateIntegration(integration.provider, "accountName", value)} value={integration.accountName} /><Field label="Endpoint" onChange={(value) => updateIntegration(integration.provider, "endpoint", value)} value={integration.endpoint} /><Field label="Webhook URL" onChange={(value) => updateIntegration(integration.provider, "webhookUrl", value)} value={integration.webhookUrl} /><Field label="Klucz publiczny" onChange={(value) => updateIntegration(integration.provider, "publicKey", value)} value={integration.publicKey} /><Field label="Token / secret" onChange={(value) => setIntegrationSecrets((previous) => ({ ...previous, [integration.provider]: value }))} placeholder={integration.hasSecret ? "Zapisany · wpisz, aby zastąpić" : "Wartość sekretna"} value={integrationSecrets[integration.provider] ?? ""} /><div className="flex justify-end sm:col-span-2"><button className={primaryButtonClass} disabled={busy} type="submit">Zapisz integrację</button></div></div></form>)}</div>}
           </section>}
 

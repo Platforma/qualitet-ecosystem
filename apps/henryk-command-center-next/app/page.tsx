@@ -201,10 +201,10 @@ export default function Home() {
 
   return (
     <div
-      className="min-h-screen bg-[#f7f8fc] text-slate-900"
+      className="min-h-screen bg-[#0B0F19] text-[#F9FAFB]"
       id="dashboard"
     >
-      <aside className="fixed inset-y-0 left-0 z-20 hidden w-64 flex-col border-r border-slate-200/80 bg-white lg:flex">
+      <aside className="fixed inset-y-0 left-0 z-20 hidden w-64 flex-col border-r border-[#374151] bg-[#111827] lg:flex">
         <a
           className="flex h-19 items-center gap-3 border-b border-slate-100 px-6"
           href="#dashboard"

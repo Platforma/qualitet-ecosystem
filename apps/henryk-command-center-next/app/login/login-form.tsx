@@ -49,13 +49,13 @@ export default function LoginForm() {
   return (
     <form className="mt-7 min-w-0 space-y-5" onSubmit={submit}>
       <label className="block">
-        <span className="mb-2 block text-sm font-semibold text-slate-800">
+        <span className="mb-2 block text-sm font-semibold text-[#F9FAFB]">
           E-mail
         </span>
         <input
           aria-invalid={Boolean(error)}
           autoComplete="username"
-          className="w-full min-w-0 rounded-lg border border-slate-300 bg-white px-3.5 py-3.5 text-base text-slate-900 outline-none placeholder:text-slate-500 focus:border-indigo-600 focus:ring-4 focus:ring-indigo-100"
+          className="w-full min-w-0 rounded-lg border border-[#4B5563] bg-[#111827] px-3.5 py-3.5 text-base text-white outline-none placeholder:text-[#9CA3AF] focus:border-[#3B82F6] focus:ring-4 focus:ring-blue-500/20"
           maxLength={254}
           onChange={(event) => setEmail(event.target.value)}
           placeholder="np. owner@twoja-domena.pl"
@@ -65,13 +65,13 @@ export default function LoginForm() {
         />
       </label>
       <label className="block">
-        <span className="mb-2 block text-sm font-semibold text-slate-800">
+        <span className="mb-2 block text-sm font-semibold text-[#F9FAFB]">
           Hasło
         </span>
         <input
           aria-invalid={Boolean(error)}
           autoComplete="current-password"
-          className="w-full min-w-0 rounded-lg border border-slate-300 bg-white px-3.5 py-3.5 text-base text-slate-900 outline-none placeholder:text-slate-500 focus:border-indigo-600 focus:ring-4 focus:ring-indigo-100"
+          className="w-full min-w-0 rounded-lg border border-[#4B5563] bg-[#111827] px-3.5 py-3.5 text-base text-white outline-none placeholder:text-[#9CA3AF] focus:border-[#3B82F6] focus:ring-4 focus:ring-blue-500/20"
           maxLength={256}
           onChange={(event) => setPassword(event.target.value)}
           placeholder="Wpisz hasło do swojego konta"
