@@ -258,10 +258,10 @@ export default function Home() {
           </p>
           <a
             className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] font-medium text-slate-500 transition hover:bg-slate-50 hover:text-slate-900"
-            href="#settings"
+            href="/settings"
           >
             <Icon className="size-4.5" name="settings" />
-            Ustawienia
+            Owner Studio · Settings
           </a>
         </nav>
 

@@ -76,6 +76,7 @@ const collectionValidators: Record<string, Document> = {
       checkedAt: { bsonType: "date" },
     },
   },
+  owner_settings: { bsonType: "object" },
   companies: {
     bsonType: "object",
     required: ["name", "createdAt"],
