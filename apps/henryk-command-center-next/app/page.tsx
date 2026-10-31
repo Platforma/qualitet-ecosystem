@@ -3,6 +3,7 @@ import alertsData from "../../../data/alerts.json";
 import aiStatusData from "../../../data/ai-status.json";
 import businessData from "../../../data/business.json";
 import systemStatusData from "../../../data/system-status.json";
+import DatabaseStatus from "./database-status";
 import IntegrationsStatus from "./integrations-status";
 
 type IconName =
@@ -395,6 +396,10 @@ export default function Home() {
               </ul>
             </article>
           </section>
+
+          <div className="mt-8">
+            <DatabaseStatus />
+          </div>
 
           <section aria-label="Moduły centrum" className="mt-8" id="moduly">
             <div className="mb-4">

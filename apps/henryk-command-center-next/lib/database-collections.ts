@@ -1,0 +1,27 @@
+export const databaseCollections = [
+  { name: "users", group: "Tożsamość i organizacje", source: "spec" },
+  { name: "companies", group: "Tożsamość i organizacje", source: "spec" },
+  { name: "company_memberships", group: "Tożsamość i organizacje", source: "spec" },
+  { name: "categories", group: "Marketplace i CRM", source: "spec" },
+  { name: "products", group: "Marketplace i CRM", source: "spec" },
+  { name: "stores", group: "Marketplace i CRM", source: "spec" },
+  { name: "leads", group: "Marketplace i CRM", source: "spec" },
+  { name: "campaigns", group: "Reklama i rozliczenia", source: "spec" },
+  { name: "ad_accounts", group: "Reklama i rozliczenia", source: "spec" },
+  { name: "subscriptions", group: "Reklama i rozliczenia", source: "spec" },
+  { name: "payments", group: "Reklama i rozliczenia", source: "spec" },
+  { name: "memory_entries", group: "Pamięć i kontrola", source: "spec" },
+  { name: "history_events", group: "Pamięć i kontrola", source: "spec" },
+  { name: "audit_logs", group: "Pamięć i kontrola", source: "spec" },
+  { name: "alerts", group: "Pamięć i kontrola", source: "spec" },
+  { name: "ai_agents", group: "Moduły platformy", source: "proposal" },
+  { name: "ai_tasks", group: "Moduły platformy", source: "proposal" },
+  { name: "integrations", group: "Moduły platformy", source: "proposal" },
+  { name: "owner_settings", group: "Moduły platformy", source: "proposal" },
+  { name: "crm_contacts", group: "Moduły platformy", source: "proposal" },
+  { name: "marketplace_ads", group: "Moduły platformy", source: "proposal" },
+  { name: "analytics_events", group: "Moduły platformy", source: "proposal" },
+  { name: "system_health", group: "Moduły platformy", source: "proposal" },
+] as const;
+
+export type DatabaseCollectionName = (typeof databaseCollections)[number]["name"];
