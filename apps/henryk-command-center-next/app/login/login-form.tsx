@@ -37,7 +37,9 @@ export default function LoginForm() {
     } catch (requestError) {
       setError(
         requestError instanceof Error
-          ? requestError.message
+          ? requestError instanceof TypeError
+            ? "Nie można połączyć się z serwerem logowania. Sprawdź połączenie i spróbuj ponownie."
+            : requestError.message
           : "Nie udało się zalogować.",
       );
       setLoading(false);
@@ -45,30 +47,34 @@ export default function LoginForm() {
   }
 
   return (
-    <form className="mt-7 space-y-4" onSubmit={submit}>
+    <form className="mt-7 min-w-0 space-y-5" onSubmit={submit}>
       <label className="block">
-        <span className="mb-1.5 block text-xs font-semibold text-slate-700">
+        <span className="mb-2 block text-sm font-semibold text-slate-800">
           E-mail
         </span>
         <input
+          aria-invalid={Boolean(error)}
           autoComplete="username"
-          className="w-full rounded-lg border border-slate-200 px-3.5 py-3 text-sm outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+          className="w-full min-w-0 rounded-lg border border-slate-300 bg-white px-3.5 py-3.5 text-base text-slate-900 outline-none placeholder:text-slate-500 focus:border-indigo-600 focus:ring-4 focus:ring-indigo-100"
           maxLength={254}
           onChange={(event) => setEmail(event.target.value)}
+          placeholder="np. owner@twoja-domena.pl"
           required
           type="email"
           value={email}
         />
       </label>
       <label className="block">
-        <span className="mb-1.5 block text-xs font-semibold text-slate-700">
+        <span className="mb-2 block text-sm font-semibold text-slate-800">
           Hasło
         </span>
         <input
+          aria-invalid={Boolean(error)}
           autoComplete="current-password"
-          className="w-full rounded-lg border border-slate-200 px-3.5 py-3 text-sm outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+          className="w-full min-w-0 rounded-lg border border-slate-300 bg-white px-3.5 py-3.5 text-base text-slate-900 outline-none placeholder:text-slate-500 focus:border-indigo-600 focus:ring-4 focus:ring-indigo-100"
           maxLength={256}
           onChange={(event) => setPassword(event.target.value)}
+          placeholder="Wpisz hasło do swojego konta"
           required
           type="password"
           value={password}
@@ -76,14 +82,15 @@ export default function LoginForm() {
       </label>
       {error && (
         <p
-          className="rounded-lg border border-rose-100 bg-rose-50 px-3 py-2.5 text-xs text-rose-700"
+          className="whitespace-pre-line break-words rounded-lg border border-rose-300 bg-rose-50 px-4 py-3.5 text-sm font-medium leading-6 text-rose-900"
           role="alert"
+          aria-live="assertive"
         >
           {error}
         </p>
       )}
       <button
-        className="w-full rounded-lg bg-indigo-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-wait disabled:opacity-60"
+        className="w-full rounded-lg bg-indigo-700 px-4 py-3.5 text-sm font-bold text-white transition hover:bg-indigo-800 focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:cursor-wait disabled:opacity-60"
         disabled={loading}
         type="submit"
       >

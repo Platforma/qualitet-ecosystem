@@ -18,9 +18,38 @@ function normalizeEmail(value: string) {
   return value.trim().toLowerCase();
 }
 
-function safeErrorResponse() {
+function getConfigurationDiagnostics() {
+  const diagnostics: string[] = [];
+  const ownerEmail = process.env.OWNER_EMAIL?.trim();
+  const ownerPasswordHash = process.env.OWNER_PASSWORD_HASH?.trim();
+  const sessionSecret = process.env.SESSION_SECRET;
+  const mongoUri = process.env.MONGODB_URI?.trim();
+
+  if (!ownerEmail) diagnostics.push("OWNER_EMAIL missing");
+  if (!ownerPasswordHash) {
+    diagnostics.push("OWNER_PASSWORD_HASH missing");
+  } else if (
+    !/^scrypt\$[0-9a-f]{32}\$[0-9a-f]{128}$/i.test(ownerPasswordHash)
+  ) {
+    diagnostics.push("OWNER_PASSWORD_HASH invalid (expected scrypt hash)");
+  }
+  if (!sessionSecret?.trim()) {
+    diagnostics.push("SESSION_SECRET missing");
+  } else if (Buffer.byteLength(sessionSecret) < 32) {
+    diagnostics.push("SESSION_SECRET invalid (minimum 32 bytes)");
+  }
+  if (!mongoUri) diagnostics.push("MONGODB_URI missing");
+
+  return diagnostics;
+}
+
+function safeErrorResponse(diagnostics = getConfigurationDiagnostics()) {
+  const message =
+    diagnostics.length > 0
+      ? `Konfiguracja serwera wymaga uwagi:\n${diagnostics.join("\n")}`
+      : "Konfiguracja serwera jest niekompletna. Sprawdź ustawienia MongoDB i sesji.";
   return NextResponse.json(
-    { error: "Logowanie jest chwilowo niedostępne. Sprawdź konfigurację serwera." },
+    { error: message },
     { status: 503, headers: { "Cache-Control": "no-store" } },
   );
 }
