@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import { getRequestUser } from "../../lib/server/auth";
 
 const links = [
+  ["Owner Control Center", "/admin/control-center"],
   ["Start", "/admin/checklist"],
   ["Setup", "/admin/setup"],
   ["Integracje", "/admin/integrations"],
