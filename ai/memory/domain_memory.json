@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-11-02T10:15:19+01:00",
+  "canonicalDomains": [
+    {
+      "domain": "qualitet-market.com",
+      "role": "Publiczny portal i Marketplace",
+      "status": "docelowa domena według decyzji właściciela; DNS niezweryfikowany"
+    },
+    {
+      "domain": "admin.qualitet-market.com",
+      "role": "Owner Studio / Henryk Command Center",
+      "status": "docelowa subdomena według decyzji właściciela; DNS niezweryfikowany"
+    },
+    {
+      "domain": "shop.qualitet-market.com",
+      "role": "Kreator Sklepów AI",
+      "status": "planowana subdomena; DNS i aplikacja niezweryfikowane"
+    },
+    {
+      "domain": "ai.qualitet-market.com",
+      "role": "AI dla firm",
+      "status": "planowana subdomena"
+    },
+    {
+      "domain": "live.qualitet-market.com",
+      "role": "Live Commerce",
+      "status": "planowana subdomena"
+    }
+  ],
+  "applicationRouting": {
+    "publicHostDefault": "qualitet-market.com",
+    "environmentOverride": "PUBLIC_HOSTNAME",
+    "publicPathRewrite": "Publiczne ścieżki są przepisywane do app/portal przez proxy.ts.",
+    "adminAccess": "admin.qualitet-market.com kieruje zalogowanego ownera na /admin/checklist; Owner Control Center wymaga roli owner."
+  },
+  "legacyReferences": [
+    {
+      "domain": "shop-qualitetmarket.org",
+      "source": "Starsze pliki ai/memory i docs/memory",
+      "status": "historyczny zapis; nie jest aktualną domeną sklepu według najnowszej decyzji"
+    },
+    {
+      "domain": "owner.qualitet-market.com",
+      "source": "Starsze ai/memory/MASTER_CONTEXT.md",
+      "status": "historyczny zapis; aktualna decyzja wskazuje admin.qualitet-market.com"
+    },
+    {
+      "domain": "www.qualitet-market.com",
+      "source": "proxy.ts",
+      "status": "kod przekierowuje do skonfigurowanej domeny publicznej; rekord DNS niezweryfikowany"
+    }
+  ],
+  "history": [
+    "Domeny są zapamiętane jako decyzja architektoniczna użytkownika; nie oznacza to potwierdzonego zakupu domeny, konfiguracji DNS ani wdrożenia."
+  ]
+}

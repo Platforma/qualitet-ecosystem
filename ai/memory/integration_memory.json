@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-11-02T10:15:19+01:00",
+  "integrations": {
+    "mongodb": {
+      "purpose": "Application data and durable AI memory.",
+      "configuration": ["MONGODB_URI", "MONGODB_DATABASE"],
+      "status": "Not verified in the inspected local environment; MONGODB_URI was not configured."
+    },
+    "ollama": {
+      "purpose": "Local model inference and optional embeddings.",
+      "configuration": ["OLLAMA_URL", "OLLAMA_MODEL", "OLLAMA_EMBEDDING_MODEL", "OLLAMA_TIMEOUT_MS"],
+      "memoryPersistence": "Memory is stored in MongoDB; Ollama is the inference runtime, not the durable store.",
+      "status": "Not verified. backend/services/ollama.service.js is empty in the current worktree, while backend/routes/ai.routes.js imports its methods."
+    },
+    "stripe": {
+      "status": "Integration provider is referenced in the admin configuration; a working supplier-acquisition payment flow is not verified."
+    },
+    "discord": {
+      "status": "Integration provider is referenced; runtime connection is not verified."
+    },
+    "cloudflare": {
+      "status": "Integration provider is referenced; runtime connection and DNS are not verified."
+    },
+    "facebook": {
+      "status": "Integration provider is referenced; runtime connection is not verified."
+    },
+    "metaAds": {
+      "configuration": "Owner-only setup stores access token and ad account ID encrypted in MongoDB integration_configs.",
+      "status": "Owner-triggered connection test is available; publishing ads is not enabled by setup."
+    },
+    "tiktok": {
+      "configuration": "Owner-only setup stores access token and advertiser ID encrypted in MongoDB integration_configs.",
+      "status": "Owner-triggered API test is available; publishing is not enabled by setup."
+    },
+    "youtube": {
+      "configuration": "Owner-only setup stores OAuth client secret and refresh token encrypted in MongoDB integration_configs.",
+      "status": "Owner-triggered OAuth refresh test is available; publishing is not enabled by setup."
+    },
+    "render": {
+      "configuration": "Owner-only setup stores API key and deploy hook encrypted in MongoDB integration_configs; service ID is a non-secret setting.",
+      "status": "Service test and manual deploy are available from Owner Setup."
+    },
+    "ownerConfiguration": {
+      "collection": "integration_configs",
+      "encryption": "AES-256-GCM with a key derived from stable SESSION_SECRET.",
+      "bootstrapConstraint": "The app still needs an initial MongoDB connection and SESSION_SECRET from secure host configuration; a DB cannot configure its own first connection.",
+      "pages": ["/admin/setup", "/admin/integrations", "/admin/checklist", "/admin/system", "/admin/automation"]
+    },
+    "email": {
+      "status": "No supplier outreach provider or delivery route is implemented."
+    }
+  },
+  "aiApi": {
+    "basePath": "/api/ai",
+    "authentication": "Bearer AI_API_TOKEN; requests return 503 when token is not configured.",
+    "routes": [
+      "GET /api/ai/health",
+      "GET /api/ai/status",
+      "GET /api/ai/tasks",
+      "GET /api/ai/logs",
+      "GET|POST /api/ai/memory/{users|projects|companies|prompts|agents|tasks|history|logs}",
+      "PATCH|DELETE /api/ai/memory/{section}/{key}",
+      "POST /api/ai/chat"
+    ],
+    "verification": "The code and tests define the API; live MongoDB/Ollama availability is not confirmed."
+  },
+  "repositoryIssues": [
+    "backend/package.json is empty in the current worktree; backend npm scripts and dependencies cannot be relied on until restored.",
+    "The main Ollama service source is empty in the current worktree; no environment-specific duplicate is treated as authoritative."
+  ],
+  "secretsPolicy": "Never store actual environment values, credentials, bearer tokens, connection strings or private keys in memory JSON."
+}

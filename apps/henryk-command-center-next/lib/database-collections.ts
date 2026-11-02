@@ -1,9 +1,12 @@
 export const databaseCollections = [
   { name: "users", group: "Tożsamość i organizacje", source: "spec" },
   { name: "companies", group: "Tożsamość i organizacje", source: "spec" },
+  { name: "outreach_campaigns", group: "Pozyskiwanie dostawców", source: "spec" },
   { name: "company_memberships", group: "Tożsamość i organizacje", source: "spec" },
   { name: "categories", group: "Marketplace i CRM", source: "spec" },
   { name: "products", group: "Marketplace i CRM", source: "spec" },
+  { name: "carts", group: "Marketplace i CRM", source: "spec" },
+  { name: "orders", group: "Marketplace i CRM", source: "spec" },
   { name: "stores", group: "Marketplace i CRM", source: "spec" },
   { name: "leads", group: "Marketplace i CRM", source: "spec" },
   { name: "campaigns", group: "Reklama i rozliczenia", source: "spec" },

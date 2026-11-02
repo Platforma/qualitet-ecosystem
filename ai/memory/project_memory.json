@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-11-02T10:15:19+01:00",
+  "project": {
+    "name": "QUALITET Ecosystem",
+    "owner": "Henryk",
+    "goal": "Zbudować jeden spójny ekosystem commerce dla firm, partnerów, dostawców i klientów.",
+    "businessLines": [
+      "Marketplace",
+      "Hurtownie i producenci",
+      "Firmy i dostawcy",
+      "Afiliacja i Partner Program",
+      "Live Commerce",
+      "AI Commerce",
+      "AI Store Builder",
+      "System reklam",
+      "System konkursów i nagród"
+    ]
+  },
+  "currentArchitecture": {
+    "webApp": "apps/henryk-command-center-next — Next.js App Router, TypeScript, React, Tailwind, MongoDB",
+    "aiBackend": "backend — Node.js HTTP server; AI API w backend/routes/ai.routes.js",
+    "database": "MongoDB; aplikacja wymaga MONGODB_URI",
+    "aiRuntime": "Ollama przez backend/services/ollama.service.js; dostępność niepotwierdzona",
+    "memory": "ai/memory/*.json — wersjonowane snapshoty; trwałe rekordy aplikacji w MongoDB",
+    "domainIntent": {
+      "qualitet-market.com": "Marketplace",
+      "admin.qualitet-market.com": "Owner Studio",
+      "shop.qualitet-market.com": "AI Store Builder"
+    },
+    "ownerControlCenter": {
+      "host": "admin.qualitet-market.com",
+      "home": "/admin/checklist",
+      "pages": ["/admin/setup", "/admin/integrations", "/admin/checklist", "/admin/system", "/admin/automation"],
+      "integrationCredentials": "AES-256-GCM encrypted in MongoDB integration_configs; stable SESSION_SECRET is required."
+    }
+  },
+  "status": {
+    "supplierAcquisition": "częściowo gotowe: rejestracja, CRM/leady, importy, panele, statystyki, draft kampanii",
+    "build": "Next.js build --webpack przechodzi; lint i TypeScript przechodzą",
+    "productionReadiness": "niepotwierdzona: brak lokalnej konfiguracji MongoDB i weryfikacji integracji",
+    "lastImplementation": "Dodano mobilny Owner Control Center z konfiguracją integracji, checklistą, statusem systemu i Render TEST/DEPLOY; sekrety są szyfrowane w MongoDB."
+  },
+  "memoryPolicy": {
+    "preserveHistory": true,
+    "neverStoreSecretsInRepo": true,
+    "personalAndCompanyRecords": "Przechowywać w zabezpieczonych kolekcjach MongoDB, nie w wersjonowanych snapshotach.",
+    "updateAfterImplementation": true
+  },
+  "history": [
+    {
+      "recordedAt": "2026-11-01T13:39:52+01:00",
+      "event": "Zapisano aktualny stan architektury, modułów i ograniczeń w plikach pamięci JSON."
+    },
+    {
+      "recordedAt": "2026-11-01",
+      "event": "Supplier Acquisition: Company/Lead/OutreachCampaign/SupplierProduct; publiczna rejestracja, panele, import CSV/XLSX leadów i CSV produktów, statystyki, kampanie robocze."
+    },
+    {
+      "recordedAt": "2026-11-01",
+      "event": "Rozdzielono publiczny portal Qualitet Market od panelu Henryk Command Center."
+    }
+  ],
+  "historicalConflicts": [
+    "Starsze pliki pamięci wymieniają Next.js 15, owner.qualitet-market.com oraz shop-qualitetmarket.org. Są to zapisy historyczne, nie aktualna deklaracja routingu."
+  ]
+}

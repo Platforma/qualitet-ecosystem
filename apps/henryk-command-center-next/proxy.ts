@@ -2,6 +2,26 @@ import { NextRequest, NextResponse } from "next/server";
 
 const cookieName = "henryk_session";
 
+const configuredPublicHostname =
+  process.env.PUBLIC_HOSTNAME?.trim().toLowerCase() || "qualitet-market.com";
+const configuredOwnerHostname =
+  process.env.OWNER_HOSTNAME?.trim().toLowerCase() || "admin.qualitet-market.com";
+const publicHostnames = new Set([
+  configuredPublicHostname,
+  `www.${configuredPublicHostname}`,
+]);
+const publicApiPaths = new Set([
+  "/api/auth/login",
+  "/api/auth/logout",
+  "/api/auth/register",
+  "/api/auth/session",
+  "/api/products",
+  "/api/suppliers/register",
+  "/api/suppliers/products",
+  "/api/suppliers/products/import",
+  "/api/suppliers/settings",
+]);
+
 function decodeBase64Url(value: string) {
   const base64 = value.replace(/-/g, "+").replace(/_/g, "/");
   return Uint8Array.from(atob(base64), (character) => character.charCodeAt(0));
@@ -59,8 +79,68 @@ async function hasValidSession(request: NextRequest) {
 }
 
 export async function proxy(request: NextRequest) {
+  const forwardedHost = request.headers.get("x-forwarded-host")?.split(",")[0].trim();
+  const host = forwardedHost || request.headers.get("host") || request.nextUrl.host;
+  let hostname: string;
+  try {
+    hostname = new URL(`http://${host}`).hostname.toLowerCase();
+  } catch {
+    hostname = request.nextUrl.hostname.toLowerCase();
+  }
+  const pathname = request.nextUrl.pathname;
+
+  if (publicHostnames.has(hostname)) {
+    if (hostname.startsWith("www.")) {
+      const canonicalUrl = request.nextUrl.clone();
+      canonicalUrl.hostname = configuredPublicHostname;
+      return NextResponse.redirect(canonicalUrl, 308);
+    }
+
+    if (pathname.startsWith("/portal")) {
+      return NextResponse.next();
+    }
+
+    if (pathname.startsWith("/api/")) {
+      return publicApiPaths.has(pathname)
+        ? NextResponse.next()
+        : NextResponse.json({ error: "Nie znaleziono zasobu." }, { status: 404 });
+    }
+
+    const publicRoutes = new Set([
+      "/",
+      "/market",
+      "/partner",
+      "/supplier",
+      "/supplier/register",
+      "/supplier/dashboard",
+      "/ai",
+      "/live",
+      "/login",
+      "/register",
+    ]);
+    if (!publicRoutes.has(pathname)) {
+      return NextResponse.rewrite(new URL("/portal/not-found", request.url));
+    }
+
+    if (
+      pathname === "/supplier/dashboard" &&
+      !(await hasValidSession(request))
+    ) {
+      const loginUrl = new URL("/portal/login", request.url);
+      loginUrl.searchParams.set("next", pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+
+    const destination = pathname === "/" ? "/portal" : `/portal${pathname}`;
+    return NextResponse.rewrite(new URL(destination, request.url));
+  }
+
+  if (pathname.startsWith("/api/")) {
+    return NextResponse.next();
+  }
+
   const authenticated = await hasValidSession(request);
-  if (request.nextUrl.pathname === "/login") {
+  if (pathname === "/login") {
     return authenticated
       ? NextResponse.redirect(new URL("/", request.url))
       : NextResponse.next();
@@ -68,12 +148,15 @@ export async function proxy(request: NextRequest) {
 
   if (!authenticated) {
     const loginUrl = new URL("/login", request.url);
-    loginUrl.searchParams.set("next", request.nextUrl.pathname);
+    loginUrl.searchParams.set("next", pathname);
     return NextResponse.redirect(loginUrl);
+  }
+  if (hostname === configuredOwnerHostname && pathname === "/") {
+    return NextResponse.redirect(new URL("/admin/checklist", request.url));
   }
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/((?!api/|_next/static|_next/image|favicon.ico|robots.txt).*)"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|robots.txt).*)"],
 };

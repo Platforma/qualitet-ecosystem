@@ -5,7 +5,11 @@ import type { ReactNode } from "react";
 import { getRequestUser } from "../../lib/server/auth";
 
 const links = [
-  ["Automation", "/admin/automation"],
+  ["Start", "/admin/checklist"],
+  ["Setup", "/admin/setup"],
+  ["Integracje", "/admin/integrations"],
+  ["System", "/admin/system"],
+  ["Automatyzacje", "/admin/automation"],
   ["Firmy", "/admin/companies"],
   ["Leady", "/admin/leads"],
   ["Statystyki", "/admin/companies/stats"],
@@ -21,15 +25,18 @@ export default async function SupplierAdminLayout({ children }: { children: Reac
   if (user.role !== "owner") redirect("/");
   return (
     <div className="min-h-screen bg-slate-50 text-slate-950">
-      <header className="border-b border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-5 py-5">
-          <Link className="text-lg font-semibold" href="/admin/companies">Supplier Acquisition Center</Link>
-          <nav aria-label="Nawigacja Supplier Acquisition" className="flex flex-wrap gap-4 text-sm">
-            {links.map(([label, href]) => <Link className="text-slate-600 hover:text-slate-950" href={href} key={href}>{label}</Link>)}
+      <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/95 backdrop-blur">
+        <div className="mx-auto max-w-7xl px-4 py-3 sm:px-5 sm:py-5">
+          <div className="flex items-center justify-between gap-3">
+          <Link className="text-lg font-semibold" href="/admin/checklist">QUALITET Owner Studio</Link>
+            <span className="text-xs font-medium text-slate-500">Owner Studio</span>
+          </div>
+          <nav aria-label="Nawigacja Owner Studio" className="-mx-4 mt-3 flex gap-1 overflow-x-auto px-4 pb-1 text-sm sm:mx-0 sm:flex-wrap sm:gap-2 sm:px-0">
+            {links.map(([label, href]) => <Link className="inline-flex min-h-10 shrink-0 items-center rounded-lg px-3 text-slate-700 hover:bg-emerald-50 hover:text-emerald-900" href={href} key={href}>{label}</Link>)}
           </nav>
         </div>
       </header>
-      <main className="mx-auto max-w-7xl px-5 py-10">{children}</main>
+      <main className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-5 sm:py-10">{children}</main>
     </div>
   );
 }

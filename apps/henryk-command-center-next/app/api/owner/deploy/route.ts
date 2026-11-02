@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { hasRole, requireUser } from "../../../../lib/server/auth";
 import { writeAuditLog } from "../../../../lib/server/database";
+import { getOwnerIntegrationValues } from "../../../../lib/server/owner-config";
 import { readJsonBody } from "../../../../lib/server/request";
 
 const githubApi = "https://api.github.com";
@@ -53,8 +54,9 @@ export async function GET(request: Request) {
   }
 
   const github = githubConfiguration();
-  const renderKey = process.env.RENDER_API_KEY?.trim() ?? "";
-  const renderService = process.env.RENDER_SERVICE_ID?.trim() ?? "";
+  const renderConfig = await getOwnerIntegrationValues("render");
+  const renderKey = renderConfig?.apiKey?.trim() ?? "";
+  const renderService = renderConfig?.serviceId?.trim() ?? "";
   let latestRun: Record<string, unknown> | null = null;
   let render: Record<string, unknown> | null = null;
   const errors: string[] = [];
@@ -130,23 +132,42 @@ export async function POST(request: Request) {
 
   try {
     if (parsed.body.action === "render-deploy") {
-      const apiKey = process.env.RENDER_API_KEY?.trim();
-      const serviceId = process.env.RENDER_SERVICE_ID?.trim();
-      if (!apiKey || !serviceId) {
-        return NextResponse.json({ error: "Brak RENDER_API_KEY lub RENDER_SERVICE_ID w konfiguracji serwera." }, { status: 400 });
+      const renderConfig = await getOwnerIntegrationValues("render");
+      const apiKey = renderConfig?.apiKey?.trim();
+      const serviceId = renderConfig?.serviceId?.trim();
+      const deployHook = renderConfig?.deployHook?.trim();
+      if ((!apiKey || !serviceId) && !deployHook) {
+        return NextResponse.json({ error: "Skonfiguruj Render w /admin/setup." }, { status: 400 });
       }
-      const response = await fetch(`https://api.render.com/v1/services/${encodeURIComponent(serviceId)}/deploys`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${apiKey}`, Accept: "application/json", "Content-Type": "application/json" },
-        body: JSON.stringify({ clearCache: "do_not_clear" }),
-        cache: "no-store",
-        signal: AbortSignal.timeout(20_000),
-      });
-      const result: unknown = await response.json();
-      if (!response.ok) {
-        throw new Error(`Render API zwróciło HTTP ${response.status}.`);
+      let deployId = "hook";
+      if (apiKey && serviceId) {
+        const response = await fetch(`https://api.render.com/v1/services/${encodeURIComponent(serviceId)}/deploys`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${apiKey}`, Accept: "application/json", "Content-Type": "application/json" },
+          body: JSON.stringify({ clearCache: "do_not_clear" }),
+          cache: "no-store",
+          signal: AbortSignal.timeout(20_000),
+        });
+        const result: unknown = await response.json();
+        if (!response.ok) {
+          throw new Error(`Render API zwróciło HTTP ${response.status}.`);
+        }
+        deployId = isRecord(result) && typeof result.id === "string" ? result.id : "started";
+      } else if (deployHook) {
+        const hook = new URL(deployHook);
+        if (hook.protocol !== "https:" || hook.hostname !== "api.render.com" || !hook.pathname.startsWith("/deploy/")) {
+          throw new Error("Zapisany Render Deploy Hook jest nieprawidłowy.");
+        }
+        const response = await fetch(hook, {
+          method: "POST",
+          cache: "no-store",
+          redirect: "error",
+          signal: AbortSignal.timeout(20_000),
+        });
+        if (!response.ok) {
+          throw new Error(`Render Deploy Hook zwrócił HTTP ${response.status}.`);
+        }
       }
-      const deployId = isRecord(result) && typeof result.id === "string" ? result.id : "started";
       await writeAuditLog({ actorId: auth.user._id, action: "owner.deploy.render", entity: "render", entityId: deployId });
       return NextResponse.json({ success: true, result: `Wdrożenie Render uruchomione (${deployId}).` }, { status: 202 });
     }

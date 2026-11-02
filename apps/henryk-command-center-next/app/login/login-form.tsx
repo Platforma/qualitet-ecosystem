@@ -82,7 +82,7 @@ export default function LoginForm() {
       </label>
       {error && (
         <p
-          className="whitespace-pre-line break-words rounded-lg border border-rose-300 bg-rose-50 px-4 py-3.5 text-sm font-medium leading-6 text-rose-900"
+          className="whitespace-pre-line wrap-break-word rounded-lg border border-rose-300 bg-rose-50 px-4 py-3.5 text-sm font-medium leading-6 text-rose-900"
           role="alert"
           aria-live="assertive"
         >

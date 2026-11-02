@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { ObjectId, type Document } from "mongodb";
 import { NextResponse } from "next/server";
 import {
@@ -5,6 +6,7 @@ import {
   requireUser,
   type UserRole,
 } from "../../../../lib/server/auth";
+import { productStatuses } from "../../../../lib/models/product";
 import { getCollection, writeAuditLog } from "../../../../lib/server/database";
 import { readJsonBody } from "../../../../lib/server/request";
 
@@ -112,6 +114,23 @@ function validateCreateInput(
     return null;
   }
   if (
+    collection === "leads" &&
+    value.status !== undefined &&
+    (typeof value.status !== "string" ||
+      !["NEW", "CONTACTED", "OPENED", "CLICKED", "REGISTERED", "ACTIVE", "REJECTED",
+        "new", "contacted", "opened", "clicked", "registered", "active", "rejected",
+        "qualified", "converted", "lost"].includes(value.status))
+  ) {
+    return null;
+  }
+  if (
+    collection === "products" &&
+    value.status !== undefined &&
+    !productStatuses.some((status) => status === value.status)
+  ) {
+    return null;
+  }
+  if (
     value.email !== undefined &&
     (typeof value.email !== "string" ||
       value.email.length > 254 ||
@@ -207,9 +226,44 @@ export async function POST(
   }
 
   const now = new Date();
+  const companySlug =
+    typeof input.name === "string"
+      ? input.name.normalize("NFKD").replace(/[\u0300-\u036f]/g, "")
+          .toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")
+          .slice(0, 100)
+      : "company";
+  const legacyLeadStatusMap: Record<string, string> = {
+    qualified: "CONTACTED",
+    converted: "REGISTERED",
+    lost: "REJECTED",
+  };
+  const rawLeadStatus = typeof input.status === "string" ? input.status.toLowerCase() : "";
   const record: Document = {
     ...input,
-    ...(collection === "leads" ? { status: input.status ?? "new" } : {}),
+    ...(collection === "companies"
+      ? {
+          slug: `${companySlug || "company"}-${randomUUID().slice(0, 8)}`,
+          email: input.email ?? "",
+          phone: input.phone ?? "",
+          website: input.website ?? "",
+          country: "PL",
+          type: "brand",
+          categories: [],
+          status: "active",
+          commissionDefault: 0,
+          adBudget: 0,
+          productsCount: 0,
+          salesCount: 0,
+          marketingConsent: false,
+        }
+      : {}),
+    ...(collection === "leads"
+      ? {
+          companyName: input.companyName ?? input.name,
+          status: legacyLeadStatusMap[rawLeadStatus] ?? (rawLeadStatus ? rawLeadStatus.toUpperCase() : "NEW"),
+          marketingConsent: false,
+        }
+      : {}),
     ...(collection === "products" ? { status: input.status ?? "draft" } : {}),
     ...(collection === "stores" ? { status: input.status ?? "active" } : {}),
     ...(collection === "marketplace_ads"

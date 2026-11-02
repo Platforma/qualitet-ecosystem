@@ -1,6 +1,12 @@
 import { NextResponse } from "next/server";
 import { hasRole, requireUser } from "../../../../lib/server/auth";
 import { getCollection, writeAuditLog } from "../../../../lib/server/database";
+import {
+  isOwnerIntegrationConfigured,
+  ownerIntegrations,
+  type OwnerIntegrationId,
+} from "../../../../lib/owner-integrations";
+import { getOwnerIntegrationSummaries } from "../../../../lib/server/owner-config";
 
 const trackedCollections = [
   { collection: "companies", label: "Firmy" },
@@ -14,76 +20,72 @@ const trackedCollections = [
 const automationModules = [
   {
     id: "companies",
-    label: "Pozyskiwanie firm",
+    label: "Pozyskiwanie Firm",
     description: "Leady, firmy i kontakty z istniejącego panelu CRM.",
-    requirements: ["MONGODB_URI"],
+    providers: ["mongodb"] as OwnerIntegrationId[],
+    manualRequirements: [],
     href: "/admin/companies",
   },
   {
     id: "mailing",
     label: "Mailing",
-    description: "Kampanie outreach i historia aktywności odbiorców.",
-    requirements: ["MONGODB_URI", "EMAIL_PROVIDER_API_KEY"],
+    description: "Kampanie outreach. Wysyłka wymaga skonfigurowanego dostawcy poczty i zgód.",
+    providers: ["mongodb"] as OwnerIntegrationId[],
+    manualRequirements: ["Dostawca poczty i potwierdzona zgoda odbiorców"],
     href: "/admin/outreach",
   },
   {
     id: "product-import",
-    label: "Import produktów",
-    description: "Import CSV dostępny w panelu dostawcy; inne formaty wymagają adapterów.",
-    requirements: ["MONGODB_URI"],
+    label: "Import Produktów",
+    description: "Import katalogu CSV dostępny w panelu dostawcy.",
+    providers: ["mongodb"] as OwnerIntegrationId[],
+    manualRequirements: [],
     href: "/portal/supplier/dashboard",
   },
   {
     id: "ai-content",
     label: "AI Content",
-    description: "Generowanie treści wymaga skonfigurowanego backendu AI.",
-    requirements: ["AI_BACKEND_URL", "AI_API_TOKEN"],
-    href: "/portal/ai",
+    description: "Generowanie treści wymaga dostępnego runtime Ollama.",
+    providers: ["ollama"] as OwnerIntegrationId[],
+    manualRequirements: [],
+    href: "/admin/setup",
   },
   {
     id: "ai-seo",
     label: "AI SEO",
     description: "Przepływ generowania i publikacji SEO wymaga integracji AI.",
-    requirements: ["AI_BACKEND_URL", "AI_API_TOKEN"],
+    providers: ["ollama"] as OwnerIntegrationId[],
+    manualRequirements: ["Przepływ publikacji SEO"],
   },
   {
     id: "ai-social",
     label: "AI Social Media",
-    description: "Publikacja społecznościowa wymaga integracji AI i API kanału.",
-    requirements: ["AI_BACKEND_URL", "FACEBOOK_ACCESS_TOKEN"],
-    href: "/api/owner/ads",
-  },
-  {
-    id: "reports",
-    label: "Raporty",
-    description: "Raporty dzienne z bieżących kolekcji MongoDB.",
-    requirements: ["MONGODB_URI"],
-  },
-  {
-    id: "monitoring",
-    label: "Monitoring",
-    description: "Podstawowy status aplikacji i połączenia z bazą.",
-    requirements: [],
-    href: "/api/health",
+    description: "Publikacja wymaga runtime AI oraz konta Meta.",
+    providers: ["ollama", "facebook", "metaAds"] as OwnerIntegrationId[],
+    manualRequirements: [],
+    href: "/admin/setup",
   },
   {
     id: "deploy",
     label: "Deploy",
-    description: "Status GitHub Actions i wdrożeń dostępny w istniejącym API.",
-    requirements: ["GITHUB_PAT"],
-    href: "/api/owner/deploy",
+    description: "Test i ręczny deploy Render dostępny w Owner Setup.",
+    providers: ["render"] as OwnerIntegrationId[],
+    manualRequirements: [],
+    href: "/admin/setup",
   },
   {
     id: "backup",
     label: "Backup",
-    description: "Wymaga skonfigurowanego zewnętrznego miejsca przechowywania kopii.",
-    requirements: ["BACKUP_STORAGE_URL"],
+    description: "Automatyczne kopie wymagają dostawcy magazynu i polityki retencji.",
+    providers: [] as OwnerIntegrationId[],
+    manualRequirements: ["Magazyn kopii zapasowych i polityka retencji"],
   },
   {
-    id: "store-builder",
-    label: "AI Store Builder",
-    description: "Kreator sklepów AI nie jest jeszcze podłączony do aplikacji.",
-    requirements: ["AI_BACKEND_URL", "AI_API_TOKEN"],
+    id: "reports",
+    label: "Raporty",
+    description: "Raport dzienny jest generowany z bieżących kolekcji MongoDB.",
+    providers: ["mongodb"] as OwnerIntegrationId[],
+    manualRequirements: [],
   },
 ] as const;
 
@@ -111,7 +113,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    const [metrics, reports, runs] = await Promise.all([
+    const [metrics, reports, runs, summaries] = await Promise.all([
       getMetrics(),
       getCollection("automation_reports").then((items) =>
         items.find({}).sort({ createdAt: -1 }).limit(5).toArray(),
@@ -119,17 +121,38 @@ export async function GET(request: Request) {
       getCollection("automation_runs").then((items) =>
         items.find({}).sort({ createdAt: -1 }).limit(8).toArray(),
       ),
+      getOwnerIntegrationSummaries(),
     ]);
 
     const modules = automationModules.map((module) => {
-      const missing = module.requirements.filter((name) => !process.env[name]?.trim());
-      const unavailable = module.id === "store-builder";
+      const missingProviders = module.providers.filter((provider) => {
+        const summary = summaries.get(provider);
+        return !isOwnerIntegrationConfigured(provider, summary?.configuredFields ?? []);
+      });
+      const untestedProviders = module.providers.filter((provider) => {
+        const summary = summaries.get(provider);
+        return summary?.checkStatus !== "connected";
+      });
+      const requirements = [
+        ...missingProviders.map((provider) =>
+          ownerIntegrations.find((integration) => integration.id === provider)?.label ?? provider,
+        ),
+        ...module.manualRequirements,
+      ];
       return {
-        ...module,
-        state: unavailable
-          ? ("unavailable" as const)
-          : missing.length > 0
-            ? ("needs-configuration" as const)
+        id: module.id,
+        label: module.label,
+        description: module.description,
+        href: "href" in module ? module.href : undefined,
+        requirements: requirements.length
+          ? requirements
+          : untestedProviders.length
+            ? [`Testuj: ${untestedProviders.map((provider) => ownerIntegrations.find((integration) => integration.id === provider)?.label ?? provider).join(", ")}`]
+            : [],
+        state: requirements.length > 0
+          ? ("needs-configuration" as const)
+          : untestedProviders.length > 0
+            ? ("unavailable" as const)
             : ("ready" as const),
       };
     });
