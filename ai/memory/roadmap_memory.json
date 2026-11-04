@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-11-02T10:15:19+01:00",
+  "monthlyTargets": {
+    "companies": 100,
+    "products": 1000,
+    "partners": 100
+  },
+  "done": [
+    "Public portal pages and public/admin host routing",
+    "Supplier and acquisition model definitions and Mongo validators/indexes",
+    "Public supplier registration to Company, Lead, CRM contact, and audit log",
+    "Owner-only company approval/status and user assignment",
+    "Supplier dashboard for products, prices, partner commission, ad budget, and sales count display",
+    "Supplier product creation and CSV product import",
+    "CSV/XLSX lead import and single website/email lead capture without fetching arbitrary URLs",
+    "Owner-only company/lead/outreach/campaign/import/statistics pages",
+    "Monthly target cards and conversion statistic",
+    "Campaign drafts with up to two follow-up message drafts",
+    "Canonical ProductModel, MongoDB product schema/indexes, and public GET /api/products",
+    "CartModel, OrderModel and PaymentModel with MongoDB validators and query indexes",
+    "Mobile-first Owner Control Center pages: setup, integrations, checklist, system and automation",
+    "Owner-only encrypted MongoDB integration settings, provider TEST actions and Render TEST/DEPLOY",
+    "Owner host root directs authenticated users to the setup checklist",
+    "ESLint, TypeScript, and webpack production build"
+  ],
+  "inProgressOrNotVerified": [
+    "MongoDB bootstrap URI and SESSION_SECRET must be supplied through secure host configuration; the database cannot bootstrap itself.",
+    "MongoDB URI saved in setup is tested and stored but changing the active connection still requires host bootstrap configuration and restart.",
+    "Runtime consumers beyond Render and integration status do not yet all load credentials from integration_configs.",
+    "Cart and order APIs, price-safe checkout workflow, and mobile-first cart/order UI",
+    "Stripe checkout, webhook verification, idempotency, and payment reconciliation",
+    "MongoDB production connection and live data validation",
+    "Ollama memory runtime health and AI inference",
+    "Persistent logo upload/storage",
+    "Verified partner enrollment/affiliate tracking and commission settlement",
+    "Downstream product synchronization into Partner Program and AI Qualitet",
+    "Supplier email delivery, consent evidence, unsubscribe, rate limits, and provider integration",
+    "AI extraction for websites/PDF catalogs and trustworthy description/category/SEO suggestions",
+    "Sales/checkout pipeline that updates product and company sales metrics",
+    "Production domain DNS, TLS, deployment, backups, and monitoring"
+  ],
+  "nextActions": [
+    "Implement authenticated cart APIs and order creation with product price revalidation and ownership checks.",
+    "Build mobile-first cart and order pages before adding Stripe checkout and verified webhooks.",
+    "Configure MongoDB URI and database in a secure deployment environment; never commit secrets.",
+    "Restore/verify backend Ollama client and backend package manifest before claiming AI integration works.",
+    "Run backend AI foundation tests after restoring its package/test command.",
+    "Exercise supplier registration, owner approval, assigned account, product publishing and imports against test MongoDB.",
+    "Implement storage-backed logo upload with MIME/size validation.",
+    "Complete and test partner enrollment and product-feed consumption.",
+    "Select email provider; implement verified opt-in evidence, unsubscribe and controlled sending before campaign delivery.",
+    "Implement AI catalog extraction with safe URL fetching, SSRF protections, document limits and human review.",
+    "Add transaction events and reconcile company/product sales statistics.",
+    "Verify DNS and deployment routing for the owner-approved domains."
+  ],
+  "buildVerification": {
+    "eslint": "passed",
+    "typescript": "passed",
+    "nextWebpackBuild": "passed",
+    "ownerControlCenter": "webpack production build, ESLint, TypeScript, and 53 route prerenders passed; live integrations not tested",
+    "turbopackBuild": "OneDrive metadata mmap failed in the local environment; webpack build succeeded."
+  }
+}

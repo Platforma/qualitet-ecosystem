@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-11-02T10:15:19+01:00",
+  "vision": {
+    "platform": "QUALITET",
+    "goal": "Ekosystem sprzedaży cyfrowej dla firm i konsumentów.",
+    "domainIntent": {
+      "qualitet-market.com": "Marketplace",
+      "admin.qualitet-market.com": "Owner Studio",
+      "shop.qualitet-market.com": "AI Store Builder"
+    },
+    "commerceStatus": "Product API and cart/order/payment data foundations exist; purchase and payment workflows remain unimplemented.",
+    "ownerControlCenter": "Owner can review setup readiness and configure supported external services from mobile-first admin pages; live provider tests are explicit.",
+    "businessAreas": [
+      "Marketplace",
+      "Producenci i hurtownie",
+      "Importerzy i dystrybutorzy",
+      "Program partnerski i afiliacja",
+      "AI dla firm",
+      "AI Store Builder",
+      "Live Commerce",
+      "Reklama",
+      "Konkursy i nagrody"
+    ]
+  },
+  "operatingPrinciples": {
+    "ownerSetup": "Integration secrets are encrypted in MongoDB; bootstrap database connectivity and a stable SESSION_SECRET must be configured securely at the hosting provider.",
+    "supplierOutreach": "Nie wysyłać bez konfiguracji providera poczty i weryfikowalnej zgody odbiorcy.",
+    "supplierActivation": "Zgłoszona firma ma status pending; publikacja i panel wymagają aktywacji oraz przypisania konta przez ownera.",
+    "aiClaims": "Nie przedstawiać heurystyk jako analizy AI; funkcje AI oznaczać jako aktywne tylko po potwierdzeniu integracji.",
+    "data": "Dane firm, kontakty i partnerzy należą do chronionych rekordów MongoDB, nie do repozytorium."
+  },
+  "targets": {
+    "monthly": {
+      "companies": 100,
+      "products": 1000,
+      "partners": 100
+    }
+  },
+  "knownEntities": {
+    "companies": "Brak zweryfikowanego eksportu rekordów firm w tej pamięci; źródłem prawdy jest kolekcja MongoDB companies.",
+    "partners": "Źródłem prawdy są rekordy company_memberships; brak zweryfikowanego eksportu partnerów.",
+    "campaigns": "Źródłem prawdy jest kolekcja outreach_campaigns; kampanie zapisują się jako draft.",
+    "privateContactDataStoredInRepository": false
+  },
+  "history": [
+    "Wizja obejmuje marketplace, dostawców, afiliację, live/AI commerce, system reklam, konkursów i nagród."
+  ]
+}

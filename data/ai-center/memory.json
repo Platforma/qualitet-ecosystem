@@ -1,0 +1,14 @@
+{
+  "source": "GET /api/ai/memory/:section",
+  "state": "requires_api_token_and_mongodb",
+  "sections": [
+    "users",
+    "projects",
+    "companies",
+    "prompts",
+    "agents",
+    "tasks",
+    "history",
+    "logs"
+  ]
+}

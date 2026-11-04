@@ -1,8 +1,14 @@
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
+require("dotenv").config({
+    path: path.resolve(__dirname, "../.env"),
+    quiet: true
+});
+const { createAiRouter } = require("./routes/ai.routes");
 
 const PORT = process.env.PORT || 3000;
+const aiRouter = createAiRouter();
 
 function readJson(file) {
     try {
@@ -18,6 +24,18 @@ function readJson(file) {
 }
 
 const server = http.createServer((req, res) => {
+    if (req.url && req.url.startsWith("/api/ai/")) {
+        void aiRouter.handle(req, res).catch(() => {
+            if (!res.headersSent) {
+                res.writeHead(500, {
+                    "Cache-Control": "no-store",
+                    "Content-Type": "application/json; charset=utf-8"
+                });
+                res.end(JSON.stringify({ error: "AI request failed." }));
+            }
+        });
+        return;
+    }
 
     const score = readJson("project-score.json");
     const health = readJson("system-health.json");
