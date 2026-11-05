@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
 type DeployData = {
@@ -74,7 +75,7 @@ export default function DeployView() {
         <p className="text-sm leading-6 text-slate-600">TEST i ustawienia RENDER_API_KEY, RENDER_SERVICE_ID oraz RENDER_DEPLOY_HOOK są dostępne w Setup.</p>
         <div className="flex flex-col gap-2 sm:flex-row">
           <button className="min-h-12 rounded-xl bg-slate-900 px-5 font-semibold text-white disabled:opacity-50 sm:flex-1" disabled={busy || !data?.render?.configured} onClick={() => void deploy()} type="button">{busy ? "Uruchamianie…" : "DEPLOY Render"}</button>
-          <a className="inline-flex min-h-12 items-center justify-center rounded-xl border border-slate-300 px-5 font-semibold text-slate-800 sm:flex-1" href="/admin/control-center/setup#render">Ustawienia / TEST</a>
+          <Link className="inline-flex min-h-12 items-center justify-center rounded-xl border border-slate-300 px-5 font-semibold text-slate-800 sm:flex-1" href="/admin/control-center/setup#render">Ustawienia / TEST</Link>
         </div>
       </article>
       <article className="space-y-2 rounded-2xl border border-slate-200 bg-white p-4 sm:p-6">
