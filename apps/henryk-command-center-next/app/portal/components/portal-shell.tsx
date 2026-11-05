@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 const navigation = [
   { href: "/", label: "Start" },
   { href: "/market", label: "Marketplace" },
+  { href: "/trends", label: "Trendy" },
   { href: "/partner", label: "Partnerzy" },
   { href: "/supplier", label: "Dostawcy" },
   { href: "/ai", label: "AI" },
@@ -148,6 +149,9 @@ export default function PortalShell({ children }: { children: ReactNode }) {
           <nav aria-label="Linki dodatkowe" className="flex flex-wrap gap-x-5 gap-y-3">
             <Link className="portal-footer-link" href="/market">
               Marketplace
+            </Link>
+            <Link className="portal-footer-link" href="/trends">
+              Trendy
             </Link>
             <Link className="portal-footer-link" href="/partner">
               Współpraca

@@ -22,6 +22,7 @@ const shortcuts = [
   ["AI Memory", "/admin/control-center/ai-memory"],
   ["Prompty", "/admin/control-center/prompts"],
   ["Firmy", "/admin/control-center/companies"],
+  ["Trendy marketplace", "/trends"],
   ["Produkty", "/admin/control-center/products"],
   ["Partnerzy", "/admin/control-center/partners"],
 ];

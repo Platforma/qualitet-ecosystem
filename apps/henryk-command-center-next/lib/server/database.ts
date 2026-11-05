@@ -478,7 +478,10 @@ const indexDefinitions: Record<
     };
   }[]
 > = {
-  users: [{ keys: { email: 1 }, options: { unique: true } }],
+  users: [
+    { keys: { email: 1 }, options: { unique: true } },
+    { keys: { referredByPartnerId: 1 } },
+  ],
   roles: [{ keys: { key: 1 }, options: { unique: true } }],
   permissions: [{ keys: { key: 1 }, options: { unique: true } }],
   auth_sessions: [

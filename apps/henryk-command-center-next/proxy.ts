@@ -113,6 +113,7 @@ export async function proxy(request: NextRequest) {
     const publicRoutes = new Set([
       "/",
       "/market",
+      "/trends",
       "/partner",
       "/supplier",
       "/supplier/register",

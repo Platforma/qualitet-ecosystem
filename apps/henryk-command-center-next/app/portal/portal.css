@@ -460,6 +460,20 @@
   font-size: 0.82rem;
 }
 
+.portal-trend-bar-track {
+  height: 0.65rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #1e293b;
+}
+
+.portal-trend-bar {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #4f46e5, #818cf8);
+}
+
 @media (max-width: 640px) {
   .portal-market-filters {
     grid-template-columns: 1fr;
