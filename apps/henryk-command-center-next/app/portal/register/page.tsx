@@ -8,7 +8,14 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default function PublicRegistrationPage() {
+export const instant = false;
+
+export default async function PublicRegistrationPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ intent?: string }>;
+}) {
+  const { intent } = await searchParams;
   return (
     <section className="portal-container portal-section">
       <div className="mx-auto max-w-xl">
@@ -19,7 +26,7 @@ export default function PublicRegistrationPage() {
           Qualitet Market.
         </p>
         <div className="portal-card mt-7">
-          <PublicRegistrationForm />
+          <PublicRegistrationForm partnerIntent={intent === "partner"} />
           <p className="mt-6 text-sm text-[#59665e]">
             Masz już konto?{" "}
             <a className="font-bold text-[#176b4b] underline underline-offset-4" href="/login">

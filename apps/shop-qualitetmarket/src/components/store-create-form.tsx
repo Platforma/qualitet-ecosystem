@@ -5,6 +5,8 @@ type StoreCreateResponse = {
   error?: string;
 };
 
+const socialFields = ["instagram", "facebook", "tiktok", "youtube", "linkedin"] as const;
+
 export default function StoreCreateForm() {
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
@@ -26,6 +28,24 @@ export default function StoreCreateForm() {
             locale: form.get("locale"),
             currency: form.get("currency"),
             timeZone: form.get("timeZone"),
+            description: form.get("description"),
+            contactEmail: form.get("contactEmail"),
+            socialMedia: Object.fromEntries(
+              socialFields.map((field) => [field, form.get(field)]),
+            ),
+          },
+          businessProfile: {
+            businessType: form.get("businessType"),
+            industry: form.get("industry"),
+            offerings: form.get("offerings"),
+            targetAudience: form.get("targetAudience"),
+            style: form.get("style"),
+            country: form.get("country"),
+          },
+          design: {
+            primaryColor: form.get("primaryColor"),
+            accentColor: form.get("accentColor"),
+            backgroundColor: form.get("backgroundColor"),
           },
         }),
       });
@@ -50,7 +70,7 @@ export default function StoreCreateForm() {
   return (
     <form className="shop-form" onSubmit={submit}>
       <label className="field">
-        <span>Nazwa sklepu</span>
+        <span>Nazwa firmy i sklepu</span>
         <input autoComplete="organization" maxLength={200} name="name" required />
       </label>
       <label className="field">
@@ -65,6 +85,58 @@ export default function StoreCreateForm() {
         />
         <small>Unikalny identyfikator sklepu; domena nie jest tu konfigurowana.</small>
       </label>
+      <div className="field-grid">
+        <label className="field">
+          <span>Typ działalności</span>
+          <select defaultValue="retail" name="businessType" required>
+            <option value="retail">Sklep / firma</option>
+            <option value="wholesale">Hurtownia</option>
+            <option value="services">Usługi</option>
+          </select>
+        </label>
+        <label className="field">
+          <span>Branża</span>
+          <input maxLength={120} name="industry" required />
+        </label>
+      </div>
+      <label className="field">
+        <span>Co oferuje firma?</span>
+        <textarea maxLength={2000} name="offerings" required rows={3} />
+      </label>
+      <div className="field-grid">
+        <label className="field">
+          <span>Grupa docelowa</span>
+          <input maxLength={1000} name="targetAudience" required />
+        </label>
+        <label className="field">
+          <span>Kraj</span>
+          <input autoComplete="country-name" maxLength={100} name="country" required />
+        </label>
+      </div>
+      <label className="field">
+        <span>Styl sklepu</span>
+        <select defaultValue="modern" name="style" required>
+          <option value="modern">Nowoczesny</option>
+          <option value="premium">Premium</option>
+          <option value="business">Biznesowy</option>
+          <option value="luxury">Luksusowy</option>
+          <option value="minimal">Minimalistyczny</option>
+        </select>
+      </label>
+      <div className="field-grid">
+        <label className="field">
+          <span>Kolor główny</span>
+          <input defaultValue="#172b4d" name="primaryColor" type="color" />
+        </label>
+        <label className="field">
+          <span>Kolor akcentu</span>
+          <input defaultValue="#c89b3c" name="accentColor" type="color" />
+        </label>
+        <label className="field">
+          <span>Tło</span>
+          <input defaultValue="#ffffff" name="backgroundColor" type="color" />
+        </label>
+      </div>
       <div className="field-grid">
         <label className="field">
           <span>Język</span>
@@ -109,6 +181,26 @@ export default function StoreCreateForm() {
           <option value="UTC">UTC</option>
         </select>
       </label>
+      <label className="field">
+        <span>Opis działalności / o firmie</span>
+        <textarea maxLength={5000} name="description" rows={3} />
+      </label>
+      <label className="field">
+        <span>E-mail kontaktowy</span>
+        <input autoComplete="email" maxLength={254} name="contactEmail" type="email" />
+      </label>
+      <p className="field-hint">
+        Ollama wygeneruje treści, propozycje kategorii, SEO oraz logo i baner SVG.
+        Nie będą tworzone przykładowe produkty ani dokumenty prawne.
+      </p>
+      <div className="field-grid">
+        {socialFields.map((field) => (
+          <label className="field" key={field}>
+            <span>{field}</span>
+            <input autoCapitalize="none" maxLength={2000} name={field} type="url" />
+          </label>
+        ))}
+      </div>
       {error && <p className="notice notice-error" role="alert">{error}</p>}
       <button className="button button-primary" disabled={saving} type="submit">
         {saving ? "Tworzenie…" : "Utwórz sklep"}

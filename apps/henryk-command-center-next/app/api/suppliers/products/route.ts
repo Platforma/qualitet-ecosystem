@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import { requireUser } from "../../../../lib/server/auth";
 import { getCollection, writeAuditLog } from "../../../../lib/server/database";
-import type { ProductModel } from "../../../../lib/models/product";
+import {
+  marketplaceCategories,
+  marketplaceListingKinds,
+  type ProductModel,
+} from "../../../../lib/models/product";
 import { readJsonBody } from "../../../../lib/server/request";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -32,6 +36,9 @@ export async function GET(request: Request) {
       products: products.map((product) => ({
         id: String(product._id),
         name: product.name,
+        kind: product.kind ?? "product",
+        category: product.category ?? "inne",
+        imageUrl: product.imageUrl ?? "",
         sku: product.sku,
         wholesalePrice: product.wholesalePrice,
         price: product.price,
@@ -54,10 +61,18 @@ export async function POST(request: Request) {
   const parsed = await readJsonBody(request, 32_768);
   if (!parsed.ok) return parsed.response;
   const body = parsed.body;
+  if (!isRecord(body)) {
+    return NextResponse.json({ error: "Uzupełnij wszystkie pola produktu." }, { status: 400 });
+  }
+  const kind = body.kind ?? "product";
+  const category = body.category ?? "inne";
+  const imageUrl = body.imageUrl ?? "";
   if (
-    !isRecord(body) ||
     typeof body.name !== "string" ||
     typeof body.description !== "string" ||
+    (typeof kind !== "string") ||
+    (typeof category !== "string") ||
+    (typeof imageUrl !== "string") ||
     typeof body.sku !== "string" ||
     typeof body.wholesalePrice !== "number" ||
     typeof body.retailPrice !== "number" ||
@@ -68,10 +83,28 @@ export async function POST(request: Request) {
   }
   const name = body.name.trim();
   const sku = body.sku.trim();
+  const normalizedImageUrl = imageUrl.trim();
+  let validImageUrl = normalizedImageUrl === "";
+  if (normalizedImageUrl) {
+    try {
+      const url = new URL(normalizedImageUrl);
+      validImageUrl =
+        url.protocol === "https:" &&
+        !url.username &&
+        !url.password &&
+        url.hostname.includes(".");
+    } catch {
+      validImageUrl = false;
+    }
+  }
   if (
+    !marketplaceListingKinds.includes(kind as (typeof marketplaceListingKinds)[number]) ||
+    !marketplaceCategories.some((item) => item.slug === category) ||
     name.length < 2 || name.length > 200 ||
     sku.length < 1 || sku.length > 100 ||
     body.description.length > 10_000 ||
+    normalizedImageUrl.length > 2_000 ||
+    !validImageUrl ||
     !Number.isFinite(body.wholesalePrice) || body.wholesalePrice < 0 ||
     !Number.isFinite(body.retailPrice) || body.retailPrice < body.wholesalePrice ||
     !Number.isFinite(body.partnerCommission) || body.partnerCommission < 0 || body.partnerCommission > 100 ||
@@ -88,8 +121,11 @@ export async function POST(request: Request) {
 
   const now = new Date();
   const product: ProductModel = {
+    kind: kind as ProductModel["kind"],
+    category: category as ProductModel["category"],
     name,
     description: body.description.trim(),
+    imageUrl: normalizedImageUrl,
     sku,
     price: body.retailPrice,
     wholesalePrice: body.wholesalePrice,

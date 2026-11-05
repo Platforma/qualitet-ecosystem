@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { GetServerSideProps } from "next";
 import StoreCreateForm from "../../components/store-create-form";
 import ShopLayout from "../../components/shop-layout";
@@ -83,7 +84,15 @@ export default function ShopDashboard({
               {store.domain && (
                 <p className="shop-meta">Domena: {store.domain}</p>
               )}
-              <LinkButton store={store} />
+              <div className="shop-actions">
+                <LinkButton store={store} />
+                <PublishButton store={store} />
+              </div>
+              {store.status === "active" && (
+                <p className="shop-meta">
+                  Publiczny sklep: <a href={`/${store.slug}`}>/{store.slug}</a>
+                </p>
+              )}
             </article>
           ))}
         </div>
@@ -106,6 +115,34 @@ export default function ShopDashboard({
           ))}
         </section>
       )}
+      {selectedStore?.generatedContent && (
+        <section className="shop-card shop-ai-content">
+          <h2>Treści wygenerowane dla firmy</h2>
+          <h3>{selectedStore.generatedContent.heroHeadline}</h3>
+          <p>{selectedStore.generatedContent.heroDescription}</p>
+          <h3>Proponowane kategorie</h3>
+          <ul>
+            {selectedStore.generatedContent.categorySuggestions.map((category) => (
+              <li key={category.name}>
+                <strong>{category.name}</strong> — {category.description}
+              </li>
+            ))}
+          </ul>
+          <details>
+            <summary>Treści marketingowe</summary>
+            <h4>Post społecznościowy</h4>
+            <p>{selectedStore.generatedContent.socialPost}</p>
+            <h4>Reklama Facebook</h4>
+            <p>{selectedStore.generatedContent.facebookAd}</p>
+            <h4>Reklama Google</h4>
+            <p>{selectedStore.generatedContent.googleAd}</p>
+            <h4>Temat newslettera</h4>
+            <p>{selectedStore.generatedContent.newsletterSubject}</p>
+            <h4>Artykuł SEO</h4>
+            <p>{selectedStore.generatedContent.seoArticle}</p>
+          </details>
+        </section>
+      )}
     </ShopLayout>
   );
 }
@@ -118,5 +155,55 @@ function LinkButton({ store }: { store: DashboardStore }) {
     >
       Zarządzaj sklepem
     </a>
+  );
+}
+
+function PublishButton({ store }: { store: DashboardStore }) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+
+  async function toggleStatus() {
+    setBusy(true);
+    setError("");
+    try {
+      const response = await fetch(`/api/stores/${encodeURIComponent(store.id)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          section: "status",
+          status: store.status === "active" ? "draft" : "active",
+        }),
+      });
+      const result = (await response.json()) as { error?: string };
+      if (!response.ok) {
+        throw new Error(result.error ?? "Nie udało się zmienić statusu sklepu.");
+      }
+      window.location.reload();
+    } catch (requestError) {
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : "Nie udało się zmienić statusu sklepu.",
+      );
+      setBusy(false);
+    }
+  }
+
+  return (
+    <span>
+      <button
+        className="button button-primary"
+        disabled={busy}
+        onClick={toggleStatus}
+        type="button"
+      >
+        {busy
+          ? "Zapisywanie…"
+          : store.status === "active"
+            ? "Wstrzymaj publikację"
+            : "Opublikuj sklep"}
+      </button>
+      {error && <small className="notice-error" role="alert">{error}</small>}
+    </span>
   );
 }

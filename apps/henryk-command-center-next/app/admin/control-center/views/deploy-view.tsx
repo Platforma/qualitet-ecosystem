@@ -62,8 +62,8 @@ export default function DeployView() {
         <div><h2 className="text-2xl font-bold">Deploy</h2><p className="mt-1 text-sm text-slate-600">Widok statusu i akcji wdrożeniowych; konfiguracja pozostaje w Setup.</p></div>
         <button className="min-h-11 rounded-xl border border-slate-300 px-4 text-sm font-semibold" onClick={() => void refresh()} type="button">Odśwież status</button>
       </header>
-      {error && <p className="break-words rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-900" role="alert">{error}</p>}
-      {notice && <p className="break-words rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900" role="status">{notice}</p>}
+      {error && <p className="wrap-break-word rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-900" role="alert">{error}</p>}
+      {notice && <p className="wrap-break-word rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900" role="status">{notice}</p>}
       <article className="space-y-4 rounded-2xl border border-slate-200 bg-white p-4 sm:p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h3 className="text-lg font-semibold">Render</h3>
@@ -84,10 +84,10 @@ export default function DeployView() {
           <>
             <p className="break-all text-sm text-slate-700">Repozytorium: {data.github.repository}</p>
             <p className="text-sm text-slate-600">{data.github.configured ? "Token skonfigurowany" : "Token wymaga konfiguracji"} · {data.github.workflowConfigured ? "Workflow skonfigurowany" : "Workflow wymaga konfiguracji"}</p>
-            {data.github.latestRun && <p className="break-words text-sm text-slate-600">Ostatni workflow: {data.github.latestRun.name} · {data.github.latestRun.status} · {data.github.latestRun.conclusion ?? "w toku"}</p>}
+            {data.github.latestRun && <p className="wrap-break-word text-sm text-slate-600">Ostatni workflow: {data.github.latestRun.name} · {data.github.latestRun.status} · {data.github.latestRun.conclusion ?? "w toku"}</p>}
           </>
         ) : <p className="text-sm text-slate-600">Ładowanie statusu…</p>}
-        {data?.errors?.map((message) => <p className="break-words text-sm text-amber-800" key={message}>{message}</p>)}
+        {data?.errors?.map((message) => <p className="wrap-break-word text-sm text-amber-800" key={message}>{message}</p>)}
       </article>
     </section>
   );

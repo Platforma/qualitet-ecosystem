@@ -8,6 +8,8 @@ const companyTypeLabels = [
   ["importer", "Importer"],
   ["distributor", "Dystrybutor"],
   ["brand", "Marka"],
+  ["seller", "Sklep / sprzedawca"],
+  ["service_provider", "Usługodawca"],
 ];
 
 export default function SupplierRegistrationForm() {

@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import {
+  updateOwnedStoreStatus,
   updateOwnedStoreDesign,
   updateOwnedStoreSettings,
 } from "../../../server/store-repository";
@@ -46,6 +47,11 @@ export default async function storeHandler(
       });
     } else if (body.section === "design") {
       updated = await updateOwnedStoreDesign(id, owner.id, body.design);
+    } else if (
+      body.section === "status" &&
+      (body.status === "draft" || body.status === "active")
+    ) {
+      updated = await updateOwnedStoreStatus(id, owner.id, body.status);
     } else {
       return response.status(400).json({ error: "Nieznana sekcja ustawień." });
     }

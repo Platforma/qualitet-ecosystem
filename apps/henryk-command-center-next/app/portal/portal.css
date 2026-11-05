@@ -1,16 +1,16 @@
 .portal-shell {
-  --portal-ink: #17231d;
-  --portal-muted: #59665e;
-  --portal-green: #176b4b;
-  --portal-green-dark: #10513a;
-  --portal-lime: #d7ed91;
-  --portal-paper: #f7f8f3;
-  --portal-card: #ffffff;
-  --portal-line: #dfe5dc;
+  --portal-ink: #f8fafc;
+  --portal-muted: #94a3b8;
+  --portal-green: #4f46e5;
+  --portal-green-dark: #4338ca;
+  --portal-lime: #a5b4fc;
+  --portal-paper: #0f172a;
+  --portal-card: #111827;
+  --portal-line: #1e293b;
   min-height: 100vh;
   background: var(--portal-paper);
   color: var(--portal-ink);
-  color-scheme: light;
+  color-scheme: dark;
 }
 
 .portal-shell a {
@@ -27,7 +27,7 @@
   position: relative;
   z-index: 1;
   border-bottom: 1px solid var(--portal-line);
-  background: rgb(255 255 255 / 0.94);
+  background: rgb(17 24 39 / 0.94);
 }
 
 .portal-header-inner {
@@ -128,13 +128,13 @@
 
 .portal-button-secondary {
   border-color: var(--portal-line);
-  background: white;
+  background: #111827;
   color: var(--portal-ink) !important;
 }
 
 .portal-button-secondary:hover {
-  border-color: #9eb4a4;
-  background: #f2f6f0;
+  border-color: #4f46e5;
+  background: #1e293b;
 }
 
 .portal-main {
@@ -179,11 +179,11 @@
 .portal-hero-panel {
   position: relative;
   overflow: hidden;
-  border: 1px solid #d5e0d4;
+  border: 1px solid #334155;
   border-radius: 1.5rem;
   background:
-    radial-gradient(ellipse at 90% 5%, rgb(215 237 145 / 0.72), transparent 44%),
-    linear-gradient(145deg, #edf4e9, #e6efe8 55%, #dcebe1);
+    radial-gradient(ellipse at 90% 5%, rgb(79 70 229 / 0.24), transparent 44%),
+    linear-gradient(145deg, #111827, #172033 55%, #1e293b);
   padding: clamp(1.5rem, 4vw, 2.5rem);
 }
 
@@ -193,7 +193,7 @@
   bottom: -5rem;
   width: 13rem;
   height: 13rem;
-  border: 1px solid rgb(23 107 75 / 0.14);
+  border: 1px solid rgb(165 180 252 / 0.16);
   border-radius: 50%;
   content: "";
 }
@@ -204,7 +204,7 @@
 
 .portal-section-tinted {
   border-block: 1px solid var(--portal-line);
-  background: #eef2eb;
+  background: #111827;
 }
 
 .portal-section-heading {
@@ -229,7 +229,7 @@
   border-radius: 1rem;
   background: var(--portal-card);
   padding: clamp(1.25rem, 3vw, 1.75rem);
-  box-shadow: 0 12px 35px rgb(22 46 31 / 0.045);
+  box-shadow: 0 12px 35px rgb(0 0 0 / 0.16);
 }
 
 .portal-card-icon {
@@ -238,7 +238,7 @@
   height: 2.65rem;
   place-items: center;
   border-radius: 0.8rem;
-  background: #eaf3e9;
+  background: #1e293b;
   color: var(--portal-green);
   font-size: 1.1rem;
   font-weight: 800;
@@ -279,7 +279,7 @@
   flex: 0 0 auto;
   place-items: center;
   border-radius: 50%;
-  background: #e1efdc;
+  background: #1e293b;
   color: var(--portal-green);
   font-size: 0.75rem;
   font-weight: 900;
@@ -287,14 +287,14 @@
 
 .portal-cta {
   border-radius: 1.4rem;
-  background: var(--portal-green);
+  background: linear-gradient(135deg, #4f46e5, #312e81);
   color: white;
   padding: clamp(1.5rem, 5vw, 3rem);
 }
 
 .portal-cta .portal-eyebrow,
 .portal-cta .portal-section-copy {
-  color: #d8eadc;
+  color: #c7d2fe;
 }
 
 .portal-cta .portal-section-heading {
@@ -303,11 +303,11 @@
 
 .portal-cta .portal-button-primary {
   background: white;
-  color: var(--portal-green-dark) !important;
+  color: #312e81 !important;
 }
 
 .portal-cta .portal-button-primary:hover {
-  background: #edf4e9;
+  background: #e0e7ff;
 }
 
 .portal-cta .portal-button-secondary {
@@ -322,7 +322,7 @@
 
 .portal-footer {
   border-top: 1px solid var(--portal-line);
-  background: white;
+  background: #111827;
 }
 
 .portal-footer-link {
@@ -350,44 +350,53 @@
 
 .portal-shell input {
   min-height: 3rem;
-  border: 1px solid #cbd6cb !important;
+  border: 1px solid #475569 !important;
   border-radius: 0.65rem;
-  background: white !important;
+  background: #0f172a !important;
   color: var(--portal-ink) !important;
-  color-scheme: light;
+  color-scheme: dark;
   padding: 0.7rem 0.85rem;
 }
 
+.portal-form input[type="checkbox"] {
+  width: 1rem;
+  min-height: 1rem;
+  height: 1rem;
+  margin: 0;
+  padding: 0;
+  accent-color: var(--portal-green);
+}
+
 .portal-shell input::placeholder {
-  color: #7a867d;
+  color: #94a3b8;
 }
 
 .portal-shell input:focus {
   border-color: var(--portal-green) !important;
-  outline: 3px solid rgb(23 107 75 / 0.15);
+  outline: 3px solid rgb(79 70 229 / 0.28);
 }
 
 .portal-form-message {
-  border: 1px solid #ecc8c2;
+  border: 1px solid #7f1d1d;
   border-radius: 0.7rem;
-  background: #fff3f1;
-  color: #8c2e22;
+  background: rgb(127 29 29 / 0.24);
+  color: #fda4af;
   padding: 0.85rem 1rem;
   font-size: 0.88rem;
   line-height: 1.55;
 }
 
 .portal-form-message-success {
-  border-color: #b7d8bd;
-  background: #eff8ef;
-  color: #205936;
+  border-color: #166534;
+  background: rgb(22 101 52 / 0.2);
+  color: #86efac;
 }
 
 .portal-notice {
-  border: 1px solid #ead8aa;
+  border: 1px solid #854d0e;
   border-radius: 0.8rem;
-  background: #fff9e9;
-  color: #5e4d24;
+  background: rgb(120 53 15 / 0.24);
+  color: #fde68a;
   padding: 1rem 1.1rem;
   font-size: 0.9rem;
   line-height: 1.65;
@@ -404,8 +413,57 @@
   width: 0.6rem;
   height: 0.6rem;
   border-radius: 50%;
-  background: #258753;
-  box-shadow: 0 0 0 0.3rem rgb(37 135 83 / 0.12);
+  background: #22c55e;
+  box-shadow: 0 0 0 0.3rem rgb(34 197 94 / 0.18);
+}
+
+.portal-market-filters {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(12rem, 0.7fr) auto;
+  align-items: end;
+  gap: 0.8rem;
+  border: 1px solid var(--portal-line);
+  border-radius: 1rem;
+  background: var(--portal-card);
+  padding: 1rem;
+}
+
+.portal-market-filters label {
+  display: grid;
+  gap: 0.45rem;
+  color: var(--portal-muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.portal-market-filters input,
+.portal-market-filters select {
+  min-height: 2.8rem;
+  border: 1px solid #475569;
+  border-radius: 0.65rem;
+  background: #0f172a;
+  color: var(--portal-ink);
+  padding: 0.6rem 0.8rem;
+}
+
+.portal-market-image {
+  width: 100%;
+  max-height: 14rem;
+  border-radius: 0.75rem;
+  background: #0f172a;
+  object-fit: cover;
+}
+
+.portal-market-seller {
+  margin-top: 0.45rem;
+  color: var(--portal-muted);
+  font-size: 0.82rem;
+}
+
+@media (max-width: 640px) {
+  .portal-market-filters {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 900px) {

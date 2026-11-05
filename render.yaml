@@ -40,9 +40,15 @@ services:
         sync: false
       - key: SHOP_SESSION_SECRET
         sync: false
-      - key: SHOP_OWNER_EMAIL
+      - key: POSTMARK_SERVER_TOKEN
         sync: false
-      - key: SHOP_OWNER_PASSWORD_HASH
+      - key: SHOP_EMAIL_FROM
+        value: noreply@qualitet-market.com
+      - key: OLLAMA_URL
+        sync: false
+      - key: OLLAMA_MODEL
+        sync: false
+      - key: OLLAMA_API_TOKEN
         sync: false
 
   - type: web

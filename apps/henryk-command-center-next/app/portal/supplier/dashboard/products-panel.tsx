@@ -1,6 +1,10 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
+import {
+  marketplaceCategories,
+  marketplaceListingKinds,
+} from "../../../../lib/models/product";
 
 type DashboardData = {
   company: {
@@ -11,7 +15,7 @@ type DashboardData = {
     productsCount: number;
     salesCount: number;
   };
-  products: { id: string; name: string; sku: string; wholesalePrice: number; price: number; currency: string; status: string }[];
+  products: { id: string; kind: string; category: string; name: string; sku: string; wholesalePrice: number; price: number; currency: string; status: string }[];
 };
 
 export default function ProductsPanel() {
@@ -52,8 +56,11 @@ export default function ProductsPanel() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: form.get("name"),
+          kind: form.get("kind"),
+          category: form.get("category"),
           sku: form.get("sku"),
           description: form.get("description"),
+          imageUrl: form.get("imageUrl") || "",
           wholesalePrice: Number(form.get("wholesalePrice")),
           retailPrice: Number(form.get("retailPrice")),
           partnerCommission: Number(form.get("partnerCommission")),
@@ -64,7 +71,7 @@ export default function ProductsPanel() {
       if (!response.ok) throw new Error(result.error ?? "Nie udało się dodać produktu.");
       formElement.reset();
       await load();
-      setMessage("Produkt został opublikowany w Marketplace, Partner Program i AI Qualitet.");
+      setMessage("Oferta została opublikowana w Marketplace, Partner Program i AI Qualitet.");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Nie udało się dodać produktu.");
     } finally {
@@ -137,8 +144,26 @@ export default function ProductsPanel() {
           <div>
             <h3 className="font-semibold">Dodaj produkt</h3>
             <form className="mt-4 grid gap-4 md:grid-cols-2" onSubmit={submitProduct}>
+              <label className="grid gap-2 text-sm">Typ oferty
+                <select className="rounded-lg border border-slate-300 px-3 py-2" name="kind" defaultValue="product">
+                  {marketplaceListingKinds.map((kind) => (
+                    <option key={kind} value={kind}>
+                      {kind === "product" ? "Produkt" : kind === "service" ? "Usługa" : "Ogłoszenie"}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="grid gap-2 text-sm">Kategoria
+                <select className="rounded-lg border border-slate-300 px-3 py-2" name="category" required defaultValue="">
+                  <option disabled value="">Wybierz kategorię</option>
+                  {marketplaceCategories.map((category) => (
+                    <option key={category.slug} value={category.slug}>{category.label}</option>
+                  ))}
+                </select>
+              </label>
               <input aria-label="Nazwa produktu" className="rounded-lg border border-slate-300 px-3 py-2" name="name" placeholder="Nazwa produktu" required maxLength={200} />
               <input aria-label="SKU" className="rounded-lg border border-slate-300 px-3 py-2" name="sku" placeholder="SKU" required maxLength={100} />
+              <input aria-label="Adres HTTPS zdjęcia" className="rounded-lg border border-slate-300 px-3 py-2 md:col-span-2" name="imageUrl" placeholder="https://... (opcjonalnie)" type="url" />
               <textarea aria-label="Opis" className="rounded-lg border border-slate-300 px-3 py-2 md:col-span-2" name="description" placeholder="Opis produktu" rows={3} maxLength={10000} />
               <label className="grid gap-2 text-sm">Cena hurtowa
                 <input className="rounded-lg border border-slate-300 px-3 py-2" name="wholesalePrice" min="0" step="0.01" type="number" required />
@@ -155,7 +180,7 @@ export default function ProductsPanel() {
                 </select>
               </label>
               <button className="rounded-xl bg-emerald-700 px-4 py-3 font-medium text-white disabled:opacity-50 md:col-span-2" disabled={saving}>
-                Opublikuj produkt
+                Opublikuj ofertę
               </button>
             </form>
           </div>
@@ -176,7 +201,7 @@ export default function ProductsPanel() {
           <form className="grid gap-3 rounded-xl border border-slate-200 p-4 sm:grid-cols-[1fr_auto]" onSubmit={importCsv}>
             <label className="grid gap-2 text-sm">Import produktów CSV (maks. 2 MB / 1000 wierszy)
               <input accept=".csv,text/csv" className="block w-full text-sm" name="file" required type="file" />
-              <span className="text-xs text-slate-500">Kolumny: name, sku, wholesale_price, retail_price, description, currency, partner_commission.</span>
+              <span className="text-xs text-slate-500">Kolumny: name, sku, category (slug), wholesale_price, retail_price, description, currency, partner_commission. Kategoria może być pominięta — trafi do „Pozostałe”.</span>
             </label>
             <button className="self-end rounded-xl border border-slate-300 px-4 py-2 disabled:opacity-50" disabled={saving}>Importuj CSV</button>
           </form>

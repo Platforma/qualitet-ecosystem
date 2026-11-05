@@ -41,6 +41,24 @@ interface LoginAttempt extends Document {
   expiresAt: Date;
 }
 
+interface ShopAccount extends Document {
+  ownerUserId: string;
+  companyName: string;
+  email: string;
+  passwordHash: string;
+  status: "pending_verification" | "active";
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface ShopEmailVerification extends Document {
+  ownerUserId: string;
+  email: string;
+  tokenHash: string;
+  expiresAt: Date;
+  createdAt: Date;
+}
+
 export interface ShopOwner {
   id: string;
 }
@@ -163,6 +181,174 @@ async function getLoginAttemptsCollection(): Promise<
   return collection;
 }
 
+async function getShopAccountsCollection(): Promise<Collection<ShopAccount>> {
+  const collection =
+    (await getShopDatabase()).collection<ShopAccount>("shop_accounts");
+  await collection.createIndex({ email: 1 }, { unique: true });
+  return collection;
+}
+
+async function getShopEmailVerificationsCollection(): Promise<
+  Collection<ShopEmailVerification>
+> {
+  const collection = (await getShopDatabase()).collection<ShopEmailVerification>(
+    "shop_email_verifications",
+  );
+  await Promise.all([
+    collection.createIndex({ tokenHash: 1 }, { unique: true }),
+    collection.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }),
+  ]);
+  return collection;
+}
+
+function hashShopPassword(password: string): Promise<string> {
+  const salt = randomBytes(16);
+  return new Promise((resolve, reject) => {
+    scryptCallback(
+      password,
+      salt,
+      64,
+      passwordHashOptions,
+      (error, derivedKey) => {
+        if (error) {
+          reject(error);
+          return;
+        }
+        resolve(`scrypt$${salt.toString("hex")}$${derivedKey.toString("hex")}`);
+      },
+    );
+  });
+}
+
+async function verifyEncodedPassword(password: string, encodedHash: string) {
+  const [algorithm, saltHex, hashHex, extra] = encodedHash.split("$");
+  if (
+    algorithm !== "scrypt" ||
+    !saltHex ||
+    !hashHex ||
+    extra !== undefined ||
+    !/^[0-9a-f]{32}$/i.test(saltHex) ||
+    !/^[0-9a-f]{128}$/i.test(hashHex)
+  ) {
+    throw new Error("Stored Shop password hash is invalid.");
+  }
+  const actualHash = await new Promise<Buffer>((resolve, reject) => {
+    scryptCallback(
+      password,
+      Buffer.from(saltHex, "hex"),
+      64,
+      passwordHashOptions,
+      (error, derivedKey) => {
+        if (error) {
+          reject(error);
+          return;
+        }
+        resolve(derivedKey);
+      },
+    );
+  });
+  return timingSafeEqual(actualHash, Buffer.from(hashHex, "hex"));
+}
+
+export async function registerShopAccount(
+  companyName: string,
+  email: string,
+  password: string,
+) {
+  const normalizedEmail = email.trim().toLowerCase();
+  const normalizedCompanyName = companyName.trim();
+  if (
+    normalizedCompanyName.length < 2 ||
+    normalizedCompanyName.length > 200 ||
+    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail) ||
+    password.length < 12 ||
+    password.length > 256
+  ) {
+    throw new TypeError("Podaj prawidłową firmę, e-mail i hasło (min. 12 znaków).");
+  }
+  const legacyEmail = process.env.SHOP_OWNER_EMAIL?.trim().toLowerCase();
+  if (legacyEmail && normalizedEmail === legacyEmail) {
+    throw new Error("Ten adres jest już zarezerwowany dla konta właściciela.");
+  }
+
+  const ownerUserId = ownerIdForEmail(normalizedEmail);
+  const now = new Date();
+  const accounts = await getShopAccountsCollection();
+  try {
+    await accounts.insertOne({
+      ownerUserId,
+      companyName: normalizedCompanyName,
+      email: normalizedEmail,
+      passwordHash: await hashShopPassword(password),
+      status: "pending_verification",
+      createdAt: now,
+      updatedAt: now,
+    });
+  } catch (error) {
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      error.code === 11000
+    ) {
+      throw new Error("Konto dla tego adresu e-mail już istnieje.");
+    }
+    throw error;
+  }
+
+  return { ownerUserId, email: normalizedEmail };
+}
+
+export async function createShopEmailVerification(
+  email: string,
+): Promise<string> {
+  const normalizedEmail = email.trim().toLowerCase();
+  const account = await (await getShopAccountsCollection()).findOne({
+    email: normalizedEmail,
+    status: "pending_verification",
+  });
+  if (!account) {
+    throw new Error("Nie znaleziono konta oczekującego na weryfikację.");
+  }
+
+  const token = randomBytes(32).toString("base64url");
+  const verifications = await getShopEmailVerificationsCollection();
+  await verifications.deleteMany({ ownerUserId: account.ownerUserId });
+  await verifications.insertOne({
+    ownerUserId: account.ownerUserId,
+    email: normalizedEmail,
+    tokenHash: createHash("sha256").update(token).digest("hex"),
+    expiresAt: new Date(Date.now() + 30 * 60 * 1000),
+    createdAt: new Date(),
+  });
+  return token;
+}
+
+export async function verifyShopAccountEmail(token: string): Promise<boolean> {
+  if (token.length < 32 || token.length > 128) {
+    return false;
+  }
+  const verifications = await getShopEmailVerificationsCollection();
+  const verification = await verifications.findOne({
+    tokenHash: createHash("sha256").update(token).digest("hex"),
+    expiresAt: { $gt: new Date() },
+  });
+  if (!verification) {
+    return false;
+  }
+
+  const result = await (await getShopAccountsCollection()).updateOne(
+    {
+      ownerUserId: verification.ownerUserId,
+      email: verification.email,
+      status: "pending_verification",
+    },
+    { $set: { status: "active", updatedAt: new Date() } },
+  );
+  await verifications.deleteMany({ ownerUserId: verification.ownerUserId });
+  return result.modifiedCount === 1;
+}
+
 export async function getShopOwner(
   request: IncomingMessage,
 ): Promise<ShopOwner | null> {
@@ -189,49 +375,37 @@ export async function verifyShopOwnerPassword(
   email: string,
   password: string,
 ) {
-  const configuredEmail = process.env.SHOP_OWNER_EMAIL?.trim().toLowerCase();
-  const encodedHash = process.env.SHOP_OWNER_PASSWORD_HASH?.trim() ?? "";
-  if (!configuredEmail || !encodedHash) {
-    throw new Error("SHOP_OWNER_EMAIL and SHOP_OWNER_PASSWORD_HASH are required.");
-  }
-
-  const [algorithm, saltHex, hashHex, extra] = encodedHash.split("$");
-  if (
-    algorithm !== "scrypt" ||
-    !saltHex ||
-    !hashHex ||
-    extra !== undefined ||
-    !/^[0-9a-f]{32}$/i.test(saltHex) ||
-    !/^[0-9a-f]{128}$/i.test(hashHex)
-  ) {
-    throw new Error("SHOP_OWNER_PASSWORD_HASH must be a valid scrypt hash.");
-  }
-
-  const actualHash = await new Promise<Buffer>((resolve, reject) => {
-    scryptCallback(
-      password,
-      Buffer.from(saltHex, "hex"),
-      64,
-      passwordHashOptions,
-      (error, derivedKey) => {
-        if (error) {
-          reject(error);
-          return;
-        }
-        resolve(derivedKey);
-      },
-    );
+  const normalizedEmail = email.trim().toLowerCase();
+  const accounts = await getShopAccountsCollection();
+  const account = await accounts.findOne({
+    email: normalizedEmail,
+    status: "active",
   });
-  const expectedHash = Buffer.from(hashHex, "hex");
-  const emailMatches = timingSafeEqual(
-    createHash("sha256").update(email.trim().toLowerCase()).digest(),
-    createHash("sha256").update(configuredEmail).digest(),
-  );
-  if (!timingSafeEqual(actualHash, expectedHash) || !emailMatches) {
+  if (account) {
+    if (await verifyEncodedPassword(password, account.passwordHash)) {
+      return account.ownerUserId;
+    }
+    return null;
+  }
+  if (
+    await accounts.findOne({
+      email: normalizedEmail,
+      status: "pending_verification",
+    })
+  ) {
     return null;
   }
 
-  return ownerIdForEmail(configuredEmail);
+  const configuredEmail = process.env.SHOP_OWNER_EMAIL?.trim().toLowerCase();
+  const encodedHash = process.env.SHOP_OWNER_PASSWORD_HASH?.trim() ?? "";
+  if (!configuredEmail || !encodedHash || normalizedEmail !== configuredEmail) {
+    return null;
+  }
+  if (!(await verifyEncodedPassword(password, encodedHash))) {
+    return null;
+  }
+
+  return ownerIdForEmail(normalizedEmail);
 }
 
 export async function recordFailedShopLogin(
@@ -309,24 +483,7 @@ export async function revokeShopSession(request: IncomingMessage) {
 }
 
 export function createPasswordHash(password: string) {
-  const salt = randomBytes(16);
-  return new Promise<string>((resolve, reject) => {
-    scryptCallback(
-      password,
-      salt,
-      64,
-      passwordHashOptions,
-      (error, derivedKey) => {
-        if (error) {
-          reject(error);
-          return;
-        }
-        resolve(
-          `scrypt$${salt.toString("hex")}$${derivedKey.toString("hex")}`,
-        );
-      },
-    );
-  });
+  return hashShopPassword(password);
 }
 
 export function isValidObjectId(value: string) {

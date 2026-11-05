@@ -6,6 +6,8 @@ export const companyTypes = [
   "importer",
   "distributor",
   "brand",
+  "seller",
+  "service_provider",
 ] as const;
 
 export type CompanyType = (typeof companyTypes)[number];

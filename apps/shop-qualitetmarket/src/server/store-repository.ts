@@ -22,6 +22,7 @@ async function getStoresCollection(): Promise<Collection<Store>> {
   storeIndexesPromise ??= Promise.all([
     collection.createIndex({ ownerUserId: 1, createdAt: -1 }),
     collection.createIndex({ ownerUserId: 1, slug: 1 }),
+    collection.createIndex({ slug: 1 }, { unique: true }),
     collection.createIndex({ domain: 1 }),
   ])
     .then(() => undefined)
@@ -140,5 +141,24 @@ export async function updateOwnedStoreDesign(
     return null;
   }
 
+  return collection.findOne({ _id: new ObjectId(id) });
+}
+
+export async function updateOwnedStoreStatus(
+  id: string,
+  ownerUserId: string,
+  status: "draft" | "active",
+): Promise<Store | null> {
+  if (!ObjectId.isValid(id)) {
+    return null;
+  }
+  const collection = await getStoresCollection();
+  const result = await collection.updateOne(
+    { _id: new ObjectId(id), ownerUserId: ownerUserId.trim() },
+    { $set: { status, updatedAt: new Date() } },
+  );
+  if (result.matchedCount === 0) {
+    return null;
+  }
   return collection.findOne({ _id: new ObjectId(id) });
 }

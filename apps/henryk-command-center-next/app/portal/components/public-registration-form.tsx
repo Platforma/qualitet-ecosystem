@@ -2,11 +2,29 @@
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { accountTypes } from "../../../lib/models/user";
 
-export default function PublicRegistrationForm() {
+const accountTypeLabels: Record<(typeof accountTypes)[number], string> = {
+  customer: "Klient",
+  company: "Firma",
+  store: "Sklep",
+  wholesaler: "Hurtownia",
+  service_provider: "Usługodawca",
+  partner: "Partner",
+  advertiser: "Reklamodawca",
+};
+
+export default function PublicRegistrationForm({
+  partnerIntent = false,
+}: {
+  partnerIntent?: boolean;
+}) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [selectedAccountTypes, setSelectedAccountTypes] = useState<string[]>(
+    partnerIntent ? ["customer", "partner"] : ["customer"],
+  );
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -23,8 +41,14 @@ export default function PublicRegistrationForm() {
       setLoading(false);
       return;
     }
+    if (selectedAccountTypes.length === 0) {
+      setError("Wybierz co najmniej jeden typ konta.");
+      setLoading(false);
+      return;
+    }
 
     try {
+      const referralCode = new URLSearchParams(window.location.search).get("ref");
       const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -33,6 +57,8 @@ export default function PublicRegistrationForm() {
           email: formData.get("email"),
           password,
           passwordConfirmation,
+          accountTypes: selectedAccountTypes,
+          ...(referralCode ? { referralCode } : {}),
         }),
       });
       const result: unknown = await response.json();
@@ -74,6 +100,30 @@ export default function PublicRegistrationForm() {
           type="text"
         />
       </label>
+      <fieldset className="grid gap-3">
+        <legend className="text-sm font-bold">Jak chcesz korzystać z platformy?</legend>
+        <div className="grid gap-2 sm:grid-cols-2">
+          {accountTypes.map((type) => (
+            <label className="flex items-center gap-2 text-sm" key={type}>
+              <input
+                className="min-h-0"
+                checked={selectedAccountTypes.includes(type)}
+                name="accountTypes"
+                onChange={(event) => {
+                  setSelectedAccountTypes((current) =>
+                    event.target.checked
+                      ? [...current, type]
+                      : current.filter((value) => value !== type),
+                  );
+                }}
+                type="checkbox"
+                value={type}
+              />
+              {accountTypeLabels[type]}
+            </label>
+          ))}
+        </div>
+      </fieldset>
       <label>
         Adres e-mail
         <input

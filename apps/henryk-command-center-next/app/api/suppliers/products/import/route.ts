@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 import { requireUser } from "../../../../../lib/server/auth";
 import { parseCsvRows } from "../../../../../lib/server/csv";
-import type { ProductModel } from "../../../../../lib/models/product";
+import {
+  marketplaceCategories,
+  type ProductModel,
+} from "../../../../../lib/models/product";
 import { getCollection, writeAuditLog } from "../../../../../lib/server/database";
 
 const maxBytes = 2 * 1024 * 1024;
@@ -44,19 +47,23 @@ export async function POST(request: Request) {
       ? Number(company.commissionDefault ?? 0)
       : Number(commissionRaw);
     const description = String(row.description ?? "").trim();
+    const category = String(row.category ?? "inne").trim();
     if (
       name.length < 2 || name.length > 200 ||
       !sku || sku.length > 100 || skus.has(sku) ||
       !Number.isFinite(wholesalePrice) || wholesalePrice < 0 ||
       !Number.isFinite(retailPrice) || retailPrice < wholesalePrice ||
       !Number.isFinite(partnerCommission) || partnerCommission < 0 || partnerCommission > 100 ||
-      description.length > 10_000
+      description.length > 10_000 ||
+      !marketplaceCategories.some((item) => item.slug === category)
     ) {
       invalidRows.push(`Wiersz ${index + 2}: sprawdź nazwę, unikalne SKU i ceny.`);
       continue;
     }
     skus.add(sku);
     products.push({
+      kind: "product",
+      category: category as ProductModel["category"],
       name,
       sku,
       description,

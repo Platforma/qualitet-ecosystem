@@ -33,6 +33,32 @@ export interface StoreDesign {
   banners?: string[];
 }
 
+export interface StoreBusinessProfile {
+  businessType: "retail" | "wholesale" | "services";
+  industry: string;
+  offerings: string;
+  targetAudience: string;
+  style: "modern" | "premium" | "business" | "luxury" | "minimal";
+  country: string;
+}
+
+export interface StoreGeneratedContent {
+  heroHeadline: string;
+  heroDescription: string;
+  about: string;
+  categorySuggestions: Array<{ name: string; description: string }>;
+  socialPost: string;
+  facebookAd: string;
+  googleAd: string;
+  seoArticle: string;
+  newsletterSubject: string;
+}
+
+export interface StoreSeo {
+  title: string;
+  description: string;
+}
+
 export interface Store extends Document {
   _id?: ObjectId;
   ownerUserId: string;
@@ -42,6 +68,9 @@ export interface Store extends Document {
   status: StoreStatus;
   settings: StoreSettings;
   design?: StoreDesign;
+  businessProfile?: StoreBusinessProfile;
+  generatedContent?: StoreGeneratedContent;
+  seo?: StoreSeo;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -52,6 +81,10 @@ export interface CreateStoreInput {
   slug: string;
   domain?: string;
   settings: StoreSettings;
+  businessProfile?: StoreBusinessProfile;
+  generatedContent?: StoreGeneratedContent;
+  seo?: StoreSeo;
+  design?: StoreDesign;
 }
 
 const domainLabel = /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/;
@@ -206,35 +239,31 @@ export function normalizeStoreDesign(value: unknown): StoreDesign {
   if (!["classic", "minimal", "editorial"].includes(theme)) {
     throw new TypeError("design.theme must be a supported theme.");
   }
-  const logoUrl =
-    design.logoUrl === undefined || design.logoUrl === ""
-      ? ""
-      : requiredText(design.logoUrl, "design.logoUrl", 2_000);
-  if (logoUrl) {
+  const normalizeAsset = (value: unknown, field: string) => {
+    if (value === undefined || value === "") {
+      return "";
+    }
+    const asset = requiredText(value, field, 100_000);
+    if (/^data:image\/svg\+xml;base64,[A-Za-z0-9+/]+=*$/.test(asset)) {
+      return asset;
+    }
     try {
-      const url = new URL(logoUrl);
+      const url = new URL(asset);
       if (url.protocol !== "https:" && url.protocol !== "http:") {
         throw new Error();
       }
     } catch {
-      throw new TypeError("design.logoUrl must be an HTTP or HTTPS URL.");
+      throw new TypeError(`${field} must be an HTTP(S) URL or a generated SVG.`);
     }
-  }
+    return asset;
+  };
+  const logoUrl = normalizeAsset(design.logoUrl, "design.logoUrl");
   const bannersValue = design.banners ?? [];
   if (!Array.isArray(bannersValue) || bannersValue.length > 10) {
     throw new TypeError("design.banners must contain no more than 10 URLs.");
   }
   const banners = bannersValue.map((banner, index) => {
-    const normalized = requiredText(banner, `design.banners[${index}]`, 2_000);
-    try {
-      const url = new URL(normalized);
-      if (url.protocol !== "https:" && url.protocol !== "http:") {
-        throw new Error();
-      }
-    } catch {
-      throw new TypeError(`design.banners[${index}] must be an HTTP or HTTPS URL.`);
-    }
-    return normalized;
+    return normalizeAsset(banner, `design.banners[${index}]`);
   });
 
   return {
@@ -244,6 +273,97 @@ export function normalizeStoreDesign(value: unknown): StoreDesign {
     theme,
     logoUrl,
     banners,
+  };
+}
+
+export function normalizeStoreBusinessProfile(
+  value: unknown,
+): StoreBusinessProfile {
+  if (typeof value !== "object" || value === null) {
+    throw new TypeError("businessProfile must be an object.");
+  }
+  const profile = value as Record<string, unknown>;
+  const businessType = profile.businessType;
+  const style = profile.style;
+  if (
+    businessType !== "retail" &&
+    businessType !== "wholesale" &&
+    businessType !== "services"
+  ) {
+    throw new TypeError("businessProfile.businessType is invalid.");
+  }
+  if (
+    style !== "modern" &&
+    style !== "premium" &&
+    style !== "business" &&
+    style !== "luxury" &&
+    style !== "minimal"
+  ) {
+    throw new TypeError("businessProfile.style is invalid.");
+  }
+  return {
+    businessType,
+    industry: requiredText(profile.industry, "businessProfile.industry", 120),
+    offerings: requiredText(profile.offerings, "businessProfile.offerings", 2_000),
+    targetAudience: requiredText(
+      profile.targetAudience,
+      "businessProfile.targetAudience",
+      1_000,
+    ),
+    style,
+    country: requiredText(profile.country, "businessProfile.country", 100),
+  };
+}
+
+export function normalizeStoreGeneratedContent(
+  value: unknown,
+): StoreGeneratedContent {
+  if (typeof value !== "object" || value === null) {
+    throw new TypeError("generatedContent must be an object.");
+  }
+  const content = value as Record<string, unknown>;
+  if (!Array.isArray(content.categorySuggestions) || content.categorySuggestions.length > 20) {
+    throw new TypeError("generatedContent.categorySuggestions is invalid.");
+  }
+  const categorySuggestions = content.categorySuggestions.map((candidate) => {
+    if (typeof candidate !== "object" || candidate === null) {
+      throw new TypeError("generated category must be an object.");
+    }
+    const category = candidate as Record<string, unknown>;
+    return {
+      name: requiredText(category.name, "generated category name", 100),
+      description: requiredText(
+        category.description,
+        "generated category description",
+        500,
+      ),
+    };
+  });
+  return {
+    heroHeadline: requiredText(content.heroHeadline, "heroHeadline", 180),
+    heroDescription: requiredText(content.heroDescription, "heroDescription", 1_000),
+    about: requiredText(content.about, "about", 2_000),
+    categorySuggestions,
+    socialPost: requiredText(content.socialPost, "socialPost", 2_000),
+    facebookAd: requiredText(content.facebookAd, "facebookAd", 2_000),
+    googleAd: requiredText(content.googleAd, "googleAd", 2_000),
+    seoArticle: requiredText(content.seoArticle, "seoArticle", 5_000),
+    newsletterSubject: requiredText(
+      content.newsletterSubject,
+      "newsletterSubject",
+      200,
+    ),
+  };
+}
+
+export function normalizeStoreSeo(value: unknown): StoreSeo {
+  if (typeof value !== "object" || value === null) {
+    throw new TypeError("seo must be an object.");
+  }
+  const seo = value as Record<string, unknown>;
+  return {
+    title: requiredText(seo.title, "seo.title", 70),
+    description: requiredText(seo.description, "seo.description", 170),
   };
 }
 
@@ -273,10 +393,38 @@ export function normalizeCreateStoreInput(
   if (!/^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/.test(slug) || slug.length < 2) {
     throw new TypeError("slug must contain 2-63 lowercase letters, numbers, or hyphens.");
   }
+  if (
+    [
+      "api",
+      "dashboard",
+      "login",
+      "shop",
+      "products",
+      "categories",
+      "settings",
+      "design",
+      "orders",
+      "customers",
+      "analytics",
+    ].includes(slug)
+  ) {
+    throw new TypeError("slug is reserved by the Shop application.");
+  }
 
   const settings = normalizeStoreSettings(input.settings);
   const domain =
     input.domain === undefined ? undefined : validateDomain(input.domain);
+  const businessProfile =
+    input.businessProfile === undefined
+      ? undefined
+      : normalizeStoreBusinessProfile(input.businessProfile);
+  const generatedContent =
+    input.generatedContent === undefined
+      ? undefined
+      : normalizeStoreGeneratedContent(input.generatedContent);
+  const seo = input.seo === undefined ? undefined : normalizeStoreSeo(input.seo);
+  const design =
+    input.design === undefined ? undefined : normalizeStoreDesign(input.design);
 
   return {
     ownerUserId,
@@ -284,5 +432,9 @@ export function normalizeCreateStoreInput(
     slug,
     ...(domain ? { domain } : {}),
     settings,
+    ...(businessProfile ? { businessProfile } : {}),
+    ...(generatedContent ? { generatedContent } : {}),
+    ...(seo ? { seo } : {}),
+    ...(design ? { design } : {}),
   };
 }

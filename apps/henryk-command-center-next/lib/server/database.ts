@@ -9,10 +9,25 @@ const collectionValidators: Record<string, Document> = {
       email: { bsonType: "string" },
       name: { bsonType: "string" },
       role: { enum: ["owner", "admin", "user"] },
+      accountTypes: {
+        bsonType: "array",
+        items: {
+          enum: [
+            "customer",
+            "company",
+            "store",
+            "wholesaler",
+            "service_provider",
+            "partner",
+            "advertiser",
+          ],
+        },
+      },
       passwordHash: { bsonType: "string" },
       status: { enum: ["active", "disabled"] },
       createdAt: { bsonType: "date" },
       updatedAt: { bsonType: "date" },
+      referredByPartnerId: { bsonType: "string" },
       lastLoginAt: { bsonType: "date" },
     },
   },
@@ -151,7 +166,17 @@ const collectionValidators: Record<string, Document> = {
       website: { bsonType: "string" },
       country: { bsonType: "string" },
       ownerUserId: { bsonType: "string" },
-      type: { enum: ["manufacturer", "wholesaler", "importer", "distributor", "brand"] },
+      type: {
+        enum: [
+          "manufacturer",
+          "wholesaler",
+          "importer",
+          "distributor",
+          "brand",
+          "seller",
+          "service_provider",
+        ],
+      },
       status: { enum: ["pending", "active", "rejected", "suspended"] },
       categories: { bsonType: "array", items: { bsonType: "string" } },
       commissionDefault: { bsonType: ["double", "int", "long", "decimal"] },
@@ -181,6 +206,9 @@ const collectionValidators: Record<string, Document> = {
     properties: {
       companyId: { bsonType: "string" },
       userId: { bsonType: "string" },
+      referralCode: { bsonType: "string", pattern: "^[a-f0-9]{12}$" },
+      clickCount: { bsonType: ["int", "long"], minimum: 0 },
+      lastClickAt: { bsonType: "date" },
       status: { enum: ["active", "pending", "suspended", "archived"] },
       createdAt: { bsonType: "date" },
       updatedAt: { bsonType: "date" },
@@ -248,9 +276,12 @@ const collectionValidators: Record<string, Document> = {
     bsonType: "object",
     required: ["name", "status", "createdAt"],
     properties: {
+      kind: { enum: ["product", "service", "listing"] },
+      category: { bsonType: "string", maxLength: 80 },
       name: { bsonType: "string", minLength: 2, maxLength: 200 },
       description: { bsonType: "string", maxLength: 10_000 },
       sku: { bsonType: "string", minLength: 1, maxLength: 100 },
+      imageUrl: { bsonType: "string", maxLength: 2_000 },
       price: { bsonType: ["double", "int", "long", "decimal"], minimum: 0 },
       wholesalePrice: { bsonType: ["double", "int", "long", "decimal"], minimum: 0 },
       currency: { bsonType: "string", pattern: "^[A-Z]{3}$" },
@@ -438,7 +469,14 @@ const collectionValidators: Record<string, Document> = {
 
 const indexDefinitions: Record<
   string,
-  { keys: Document; options?: { unique?: boolean; expireAfterSeconds?: number } }[]
+  {
+    keys: Document;
+    options?: {
+      unique?: boolean;
+      expireAfterSeconds?: number;
+      partialFilterExpression?: Document;
+    };
+  }[]
 > = {
   users: [{ keys: { email: 1 }, options: { unique: true } }],
   roles: [{ keys: { key: 1 }, options: { unique: true } }],
@@ -476,7 +514,17 @@ const indexDefinitions: Record<
     { keys: { status: 1, type: 1, createdAt: -1 } },
   ],
   suppliers: [{ keys: { companyId: 1 }, options: { unique: true } }, { keys: { status: 1, createdAt: -1 } }],
-  partners: [{ keys: { userId: 1 } }, { keys: { companyId: 1 } }],
+  partners: [
+    { keys: { userId: 1 } },
+    { keys: { companyId: 1 } },
+    {
+      keys: { referralCode: 1 },
+      options: {
+        unique: true,
+        partialFilterExpression: { referralCode: { $type: "string" } },
+      },
+    },
+  ],
   advertisers: [{ keys: { userId: 1 } }, { keys: { companyId: 1 } }],
   crm_contacts: [{ keys: { email: 1 } }, { keys: { companyId: 1 } }],
   leads: [

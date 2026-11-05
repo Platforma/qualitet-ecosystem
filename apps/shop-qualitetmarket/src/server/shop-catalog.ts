@@ -20,12 +20,27 @@ export interface ShopCategoryListItem {
 
 export interface ShopProductListItem {
   id: string;
+  kind: "product" | "service";
   name: string;
   sku: string | null;
+  ean: string | null;
+  brand: string | null;
   description: string;
   status: string;
   price: number | null;
   currency: string | null;
+  inventoryQuantity: number;
+  trackInventory: boolean;
+  images: string[];
+  attributes: Record<string, string>;
+  variants: Array<{
+    sku: string;
+    attributes: Record<string, string>;
+    price?: number;
+    inventoryQuantity: number;
+  }>;
+  seoTitle: string;
+  seoDescription: string;
   updatedAt: string | null;
 }
 
@@ -39,19 +54,41 @@ function dateString(value: unknown) {
     : null;
 }
 
+function stringRecord(value: unknown): Record<string, string> {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    return {};
+  }
+  return Object.fromEntries(
+    Object.entries(value).filter(
+      (entry): entry is [string, string] => typeof entry[1] === "string",
+    ),
+  );
+}
+
 export async function listProductsForStore(
   storeId: string,
+  activeOnly = false,
 ): Promise<ShopProductListItem[]> {
   const collection = (await getShopDatabase()).collection<Document>("products");
   const products = await collection
-    .find({ storeId })
+    .find({ storeId, ...(activeOnly ? { status: "active" } : {}) })
     .project({
       name: 1,
+      kind: 1,
       sku: 1,
+      ean: 1,
+      brand: 1,
       description: 1,
       status: 1,
       price: 1,
       currency: 1,
+      inventoryQuantity: 1,
+      trackInventory: 1,
+      images: 1,
+      attributes: 1,
+      variants: 1,
+      seoTitle: 1,
+      seoDescription: 1,
       updatedAt: 1,
       createdAt: 1,
     })
@@ -61,8 +98,11 @@ export async function listProductsForStore(
 
   return products.map((product) => ({
     id: String(product._id),
+    kind: product.kind === "service" ? "service" : "product",
     name: text(product.name) ?? "—",
     sku: text(product.sku),
+    ean: text(product.ean),
+    brand: text(product.brand),
     description: text(product.description) ?? "",
     status: text(product.status) ?? "unknown",
     price:
@@ -70,6 +110,29 @@ export async function listProductsForStore(
         ? product.price
         : null,
     currency: text(product.currency),
+    inventoryQuantity:
+      typeof product.inventoryQuantity === "number" &&
+      Number.isInteger(product.inventoryQuantity)
+        ? product.inventoryQuantity
+        : 0,
+    trackInventory: product.trackInventory !== false,
+    images: Array.isArray(product.images)
+      ? product.images.filter((image): image is string => typeof image === "string")
+      : [],
+    attributes: stringRecord(product.attributes),
+    variants: Array.isArray(product.variants)
+      ? product.variants.filter(
+          (variant): variant is ShopProductListItem["variants"][number] =>
+            typeof variant === "object" &&
+            variant !== null &&
+            typeof variant.sku === "string" &&
+            typeof variant.inventoryQuantity === "number" &&
+            typeof variant.attributes === "object" &&
+            variant.attributes !== null,
+        )
+      : [],
+    seoTitle: text(product.seoTitle) ?? "",
+    seoDescription: text(product.seoDescription) ?? "",
     updatedAt: dateString(product.updatedAt) ?? dateString(product.createdAt),
   }));
 }

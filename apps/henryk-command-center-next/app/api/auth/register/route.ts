@@ -1,7 +1,9 @@
+import { randomBytes } from "node:crypto";
 import { NextResponse } from "next/server";
 import { hashPassword } from "../../../../lib/server/auth";
 import { getCollection } from "../../../../lib/server/database";
 import { readJsonBody } from "../../../../lib/server/request";
+import { accountTypes } from "../../../../lib/models/user";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -80,6 +82,9 @@ export async function POST(request: Request) {
 
   const name = body.name.trim();
   const email = body.email.trim().toLowerCase();
+  const requestedAccountTypes =
+    body.accountTypes === undefined ? ["customer"] : body.accountTypes;
+  const referralCode = body.referralCode;
   if (
     name.length < 1 ||
     name.length > 120 ||
@@ -87,12 +92,23 @@ export async function POST(request: Request) {
     !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ||
     body.password.length < 12 ||
     body.password.length > 256 ||
-    body.password !== body.passwordConfirmation
+    body.password !== body.passwordConfirmation ||
+    !Array.isArray(requestedAccountTypes) ||
+    requestedAccountTypes.length < 1 ||
+    requestedAccountTypes.length > accountTypes.length ||
+    requestedAccountTypes.some(
+      (type) =>
+        typeof type !== "string" ||
+        !accountTypes.includes(type as (typeof accountTypes)[number]),
+    ) ||
+    new Set(requestedAccountTypes).size !== requestedAccountTypes.length
+    || (referralCode !== undefined &&
+      (typeof referralCode !== "string" || !/^[a-f0-9]{12}$/.test(referralCode)))
   ) {
     return NextResponse.json(
       {
         error:
-          "Sprawdź dane. Hasło musi mieć od 12 do 256 znaków, a oba pola hasła muszą być zgodne.",
+          "Sprawdź dane, hasło i wybrane typy konta. Hasło musi mieć od 12 do 256 znaków.",
       },
       { status: 400, headers: { "Cache-Control": "no-store" } },
     );
@@ -107,17 +123,64 @@ export async function POST(request: Request) {
       );
     }
 
+    let referrer: { _id: import("mongodb").ObjectId } | null = null;
+    if (typeof referralCode === "string") {
+      referrer = await getCollection("partners").then((partners) =>
+        partners.findOne(
+          { referralCode, status: "active" },
+          { projection: { _id: 1 } },
+        ),
+      );
+      if (!referrer) {
+        return NextResponse.json(
+          { error: "Kod polecający jest nieaktywny lub nieprawidłowy." },
+          { status: 400, headers: { "Cache-Control": "no-store" } },
+        );
+      }
+    }
+
     const now = new Date();
     const passwordHash = await hashPassword(body.password);
     const result = await users.insertOne({
       email,
       name,
       role: "user",
+      accountTypes: requestedAccountTypes,
+      ...(referrer ? { referredByPartnerId: String(referrer._id) } : {}),
       passwordHash,
       status: "active",
       createdAt: now,
       updatedAt: now,
     });
+
+    if (requestedAccountTypes.includes("partner")) {
+      const partners = await getCollection("partners");
+      let generatedCode = "";
+      for (let attempt = 0; attempt < 5; attempt += 1) {
+        const candidate = randomBytes(6).toString("hex");
+        if (!(await partners.findOne({ referralCode: candidate }, { projection: { _id: 1 } }))) {
+          generatedCode = candidate;
+          break;
+        }
+      }
+      if (!generatedCode) {
+        await users.deleteOne({ _id: result.insertedId });
+        throw new Error("Unable to allocate a unique partner referral code.");
+      }
+      try {
+        await partners.insertOne({
+          userId: String(result.insertedId),
+          referralCode: generatedCode,
+          status: "active",
+          clickCount: 0,
+          createdAt: now,
+          updatedAt: now,
+        });
+      } catch (error) {
+        await users.deleteOne({ _id: result.insertedId });
+        throw error;
+      }
+    }
 
     return NextResponse.json(
       { user: { id: String(result.insertedId), email, name } },

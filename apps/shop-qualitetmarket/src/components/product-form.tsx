@@ -21,6 +21,14 @@ export default function ProductForm({
     setError("");
     const form = new FormData(event.currentTarget);
     try {
+      let attributes: unknown;
+      let variants: unknown;
+      try {
+        attributes = JSON.parse(String(form.get("attributes") || "{}"));
+        variants = JSON.parse(String(form.get("variants") || "[]"));
+      } catch {
+        throw new Error("Atrybuty i warianty muszą być poprawnym JSON-em.");
+      }
       const response = await fetch(
         product
           ? `/api/stores/${encodeURIComponent(storeId)}/products/${encodeURIComponent(product.id)}`
@@ -29,12 +37,25 @@ export default function ProductForm({
           method: product ? "PATCH" : "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
+            kind: form.get("kind"),
             name: form.get("name"),
             sku: form.get("sku"),
+            ean: form.get("ean"),
+            brand: form.get("brand"),
             description: form.get("description"),
             price: Number(form.get("price")),
             currency: form.get("currency"),
             status: form.get("status"),
+            inventoryQuantity: Number(form.get("inventoryQuantity")),
+            trackInventory: form.get("trackInventory") === "on",
+            images: String(form.get("images") ?? "")
+              .split(/\r?\n/)
+              .map((image) => image.trim())
+              .filter(Boolean),
+            attributes,
+            variants,
+            seoTitle: form.get("seoTitle"),
+            seoDescription: form.get("seoDescription"),
           }),
         },
       );
@@ -82,6 +103,13 @@ export default function ProductForm({
   return (
     <form className="shop-form" onSubmit={submit}>
       <label className="field">
+        <span>Typ wpisu</span>
+        <select defaultValue={product?.kind ?? "product"} name="kind">
+          <option value="product">Produkt</option>
+          <option value="service">Usługa</option>
+        </select>
+      </label>
+      <label className="field">
         <span>Nazwa produktu</span>
         <input defaultValue={product?.name} maxLength={200} name="name" required />
       </label>
@@ -89,6 +117,14 @@ export default function ProductForm({
         <label className="field">
           <span>SKU</span>
           <input defaultValue={product?.sku ?? ""} maxLength={100} name="sku" />
+        </label>
+        <label className="field">
+          <span>EAN</span>
+          <input defaultValue={product?.ean ?? ""} maxLength={14} name="ean" />
+        </label>
+        <label className="field">
+          <span>Marka</span>
+          <input defaultValue={product?.brand ?? ""} maxLength={120} name="brand" />
         </label>
         <label className="field">
           <span>Cena</span>
@@ -124,6 +160,77 @@ export default function ProductForm({
         <span>Opis</span>
         <textarea defaultValue={product?.description} maxLength={5000} name="description" rows={3} />
       </label>
+      <div className="field-grid">
+        <label className="field">
+          <span>Stan magazynowy</span>
+          <input
+            defaultValue={product?.inventoryQuantity ?? 0}
+            min="0"
+            name="inventoryQuantity"
+            required
+            step="1"
+            type="number"
+          />
+        </label>
+        <label className="field field-checkbox">
+          <span>
+            <input
+              defaultChecked={product?.trackInventory ?? true}
+              name="trackInventory"
+              type="checkbox"
+            />{" "}
+            Śledź stan magazynowy
+          </span>
+        </label>
+      </div>
+      <label className="field">
+        <span>Zdjęcia — URL, po jednym w wierszu</span>
+        <textarea
+          defaultValue={product?.images.join("\n") ?? ""}
+          maxLength={20000}
+          name="images"
+          rows={3}
+        />
+      </label>
+      <div className="field-grid">
+        <label className="field">
+          <span>Atrybuty (JSON)</span>
+          <textarea
+            defaultValue={JSON.stringify(product?.attributes ?? {}, null, 2)}
+            maxLength={10000}
+            name="attributes"
+            rows={4}
+          />
+        </label>
+        <label className="field">
+          <span>Warianty (JSON)</span>
+          <textarea
+            defaultValue={JSON.stringify(product?.variants ?? [], null, 2)}
+            maxLength={20000}
+            name="variants"
+            rows={4}
+          />
+        </label>
+      </div>
+      <div className="field-grid">
+        <label className="field">
+          <span>SEO title</span>
+          <input
+            defaultValue={product?.seoTitle ?? ""}
+            maxLength={70}
+            name="seoTitle"
+          />
+        </label>
+        <label className="field">
+          <span>SEO description</span>
+          <textarea
+            defaultValue={product?.seoDescription ?? ""}
+            maxLength={170}
+            name="seoDescription"
+            rows={2}
+          />
+        </label>
+      </div>
       {error && <p className="notice notice-error" role="alert">{error}</p>}
       <div className="shop-actions">
         <button className="button button-primary" disabled={saving} type="submit">

@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { getCollection, writeAuditLog } from "../../../../lib/server/database";
 import { readJsonBody } from "../../../../lib/server/request";
 import { companyTypes } from "../../../../lib/models/supplier-acquisition";
+import { requireUser } from "../../../../lib/server/auth";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -52,6 +53,8 @@ export async function POST(request: Request) {
   if (!sameOrigin(request)) {
     return NextResponse.json({ error: "Nieprawidłowe źródło żądania." }, { status: 403 });
   }
+  const auth = await requireUser(request);
+  if ("response" in auth) return auth.response;
 
   const parsed = await readJsonBody(request, 32_768);
   if (!parsed.ok) return parsed.response;
@@ -111,6 +114,12 @@ export async function POST(request: Request) {
 
   try {
     const companies = await getCollection("companies");
+    if (await companies.findOne({ ownerUserId: auth.user._id }, { projection: { _id: 1 } })) {
+      return NextResponse.json(
+        { error: "Do konta jest już przypisana firma." },
+        { status: 409 },
+      );
+    }
     if (await companies.findOne({ email }, { projection: { _id: 1 } })) {
       return NextResponse.json(
         { error: "Firma z tym adresem e-mail jest już zgłoszona." },
@@ -122,6 +131,7 @@ export async function POST(request: Request) {
       name,
       slug: `${slugBase}-${randomUUID().slice(0, 8)}`,
       email,
+      ownerUserId: auth.user._id,
       phone,
       website: website ?? "",
       country,

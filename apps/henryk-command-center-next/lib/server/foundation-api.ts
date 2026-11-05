@@ -125,6 +125,8 @@ function sanitizePayload(
         "importer",
         "distributor",
         "brand",
+        "seller",
+        "service_provider",
       ];
       if (typeof value !== "string" || !companyTypes.includes(value)) {
         return Response.json(

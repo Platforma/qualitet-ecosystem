@@ -1,5 +1,12 @@
 import type { GetServerSidePropsContext } from "next";
-import type { Store, StoreDesign, StoreSettings } from "../models/store";
+import type {
+  Store,
+  StoreBusinessProfile,
+  StoreDesign,
+  StoreGeneratedContent,
+  StoreSeo,
+  StoreSettings,
+} from "../models/store";
 import { getShopOwner } from "./shop-auth";
 import { listStoresForOwner } from "./store-repository";
 
@@ -11,6 +18,9 @@ export interface StorePageData {
   status: string;
   settings: StoreSettings;
   design: StoreDesign | null;
+  businessProfile: StoreBusinessProfile | null;
+  generatedContent: StoreGeneratedContent | null;
+  seo: StoreSeo | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -30,6 +40,9 @@ function serializeStore(store: Store): StorePageData {
     status: store.status,
     settings: store.settings,
     design: store.design ?? null,
+    businessProfile: store.businessProfile ?? null,
+    generatedContent: store.generatedContent ?? null,
+    seo: store.seo ?? null,
     createdAt: store.createdAt.toISOString(),
     updatedAt: store.updatedAt.toISOString(),
   };

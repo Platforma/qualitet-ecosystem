@@ -20,6 +20,8 @@ const publicApiPaths = new Set([
   "/api/suppliers/products",
   "/api/suppliers/products/import",
   "/api/suppliers/settings",
+  "/api/advertiser/analytics",
+  "/api/advertiser/campaigns",
 ]);
 
 function decodeBase64Url(value: string) {
@@ -101,7 +103,9 @@ export async function proxy(request: NextRequest) {
     }
 
     if (pathname.startsWith("/api/")) {
-      return publicApiPaths.has(pathname)
+      const advertiserCampaignRoute =
+        /^\/api\/advertiser\/campaigns\/[a-f\d]{24}$/i.test(pathname);
+      return publicApiPaths.has(pathname) || advertiserCampaignRoute
         ? NextResponse.next()
         : NextResponse.json({ error: "Nie znaleziono zasobu." }, { status: 404 });
     }
@@ -118,9 +122,11 @@ export async function proxy(request: NextRequest) {
       "/login",
       "/register",
     ]);
-    if (!publicRoutes.has(pathname)) {
+    const partnerReferralRoute = /^\/r\/[a-f\d]{12}$/i.test(pathname);
+    if (!publicRoutes.has(pathname) && !partnerReferralRoute) {
       return NextResponse.rewrite(new URL("/portal/not-found", request.url));
     }
+    if (partnerReferralRoute) return NextResponse.next();
 
     if (
       pathname === "/supplier/dashboard" &&
