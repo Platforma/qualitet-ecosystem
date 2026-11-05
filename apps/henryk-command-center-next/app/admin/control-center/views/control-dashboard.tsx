@@ -90,6 +90,21 @@ export default function ControlDashboard() {
         <Stat label="Rekordy projektowe" value={data ? data.metrics.reduce((sum, item) => sum + item.total, 0).toLocaleString("pl-PL") : "—"} />
       </div>
 
+      {data && (
+        <section>
+          <h3 className="mb-3 text-lg font-semibold">Dane marketplace i rozliczeń</h3>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+            {data.metrics.map((metric) => (
+              <Stat
+                key={metric.label}
+                label={metric.label}
+                value={metric.total.toLocaleString("pl-PL")}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
       <section>
         <h3 className="mb-3 text-lg font-semibold">Strefy właściciela</h3>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">

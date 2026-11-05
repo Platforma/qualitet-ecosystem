@@ -9,11 +9,20 @@ import {
 import { getOwnerIntegrationSummaries } from "../../../../lib/server/owner-config";
 
 const trackedCollections = [
+  { collection: "users", label: "Użytkownicy" },
   { collection: "companies", label: "Firmy" },
   { collection: "leads", label: "Leady" },
   { collection: "products", label: "Produkty" },
   { collection: "outreach_campaigns", label: "Kampanie mailingowe" },
   { collection: "stores", label: "Sklepy" },
+  { collection: "partners", label: "Partnerzy" },
+  { collection: "advertisers", label: "Reklamodawcy" },
+  { collection: "campaigns", label: "Kampanie reklamowe" },
+  { collection: "orders", label: "Zamówienia" },
+  { collection: "payments", label: "Płatności" },
+  { collection: "subscriptions", label: "Subskrypcje" },
+  { collection: "marketplace_ads", label: "Reklamy marketplace" },
+  { collection: "analytics_events", label: "Zdarzenia analityczne" },
   { collection: "ai_tasks", label: "Zadania AI" },
 ] as const;
 
