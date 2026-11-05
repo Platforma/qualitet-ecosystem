@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-11-02T10:15:19+01:00",
+  "publicPage": "/market",
+  "database": {
+    "productCollection": "products",
+    "productModel": "apps/henryk-command-center-next/lib/models/product.ts",
+    "publicApi": "GET /api/products; returns up to 50 active non-archived products and omits supplier-only fields",
+    "publicQuery": "Only active, non-archived products are shown.",
+    "displayFields": ["name", "description", "price", "currency"]
+  },
+  "supplierProductFlow": {
+    "requiredPrices": ["wholesalePrice", "retailPrice"],
+    "retailPriceMapping": "products.price",
+    "supplierReference": "supplierCompanyId",
+    "statusOnCreation": "active",
+    "imports": "Supplier CSV import validates row limits and SKU duplicates."
+  },
+  "commerceModels": {
+    "cart": "carts; customer-owned active/converted/abandoned cart with product references and quantities",
+    "order": "orders; immutable item price/name snapshots with customer, totals, currency and lifecycle status",
+    "payment": "payments; Stripe provider/status model linked to the order; checkout integration is not implemented"
+  },
+  "publicationChannels": {
+    "marketplace": "active product can appear in the existing public catalog",
+    "partnerProgram": "publication metadata is stored; consuming integration not confirmed",
+    "aiQualitet": "publication metadata is stored; consuming integration not confirmed"
+  },
+  "knownLimits": [
+    "Public product API is read-only; cart/order APIs, checkout and Stripe integration are not implemented.",
+    "No verified ordering, checkout, stock, fulfillment, or sales-event flow in this module.",
+    "Company salesCount is currently not updated by a confirmed transaction pipeline."
+  ]
+}

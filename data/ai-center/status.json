@@ -1,0 +1,25 @@
+{
+  "source": "agent-registry-and-runtime-check",
+  "state": "not_checked",
+  "registeredAgents": 15,
+  "configuredAgents": null,
+  "availableAgents": null,
+  "agents": [
+    { "id": "AI_QUALITET", "prompt": "ready", "runtime": "not_checked" },
+    { "id": "AI_DEVELOPER", "prompt": "ready", "runtime": "not_checked" },
+    { "id": "AI_GRAFIK_SZEF", "prompt": "ready", "runtime": "not_checked" },
+    { "id": "AI_MARKETING", "prompt": "ready", "runtime": "not_checked" },
+    { "id": "AI_SEO", "prompt": "ready", "runtime": "not_checked" },
+    { "id": "AI_BIZNES", "prompt": "ready", "runtime": "not_checked" },
+    { "id": "AI_RESEARCH", "prompt": "ready", "runtime": "not_checked" },
+    { "id": "AI_SUPPORT", "prompt": "ready", "runtime": "not_checked" },
+    { "id": "AI_CLOUD", "prompt": "ready", "runtime": "not_checked" },
+    { "id": "AI_OWNER", "prompt": "ready", "runtime": "not_checked" },
+    { "id": "AI_HELPDESK", "prompt": "ready", "runtime": "not_checked" },
+    { "id": "AI_SALES", "prompt": "ready", "runtime": "not_checked" },
+    { "id": "AI_CRM", "prompt": "ready", "runtime": "not_checked" },
+    { "id": "AI_CONTENT", "prompt": "ready", "runtime": "not_checked" },
+    { "id": "AI_SOCIAL_MEDIA", "prompt": "ready", "runtime": "not_checked" }
+  ],
+  "checkedAt": null
+}

@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "database": "qualitet_memory",
+  "record": {
+    "required": ["key", "data", "ownerId", "createdAt", "updatedAt"],
+    "keyPattern": "^[a-zA-Z0-9][a-zA-Z0-9._:-]{0,127}$",
+    "maxDataBytes": 262144,
+    "maxTags": 30
+  },
+  "sections": {
+    "users": {
+      "collection": "memory_users",
+      "requiredDataFields": ["userId"]
+    },
+    "projects": {
+      "collection": "memory_projects",
+      "requiredDataFields": ["projectId"]
+    },
+    "companies": {
+      "collection": "memory_companies",
+      "requiredDataFields": ["companyId"]
+    },
+    "prompts": {
+      "collection": "memory_prompts",
+      "requiredDataFields": ["promptId", "name", "content"]
+    },
+    "agents": {
+      "collection": "memory_agents",
+      "requiredDataFields": ["agentId", "name", "role"]
+    },
+    "tasks": {
+      "collection": "memory_tasks",
+      "requiredDataFields": ["taskId", "agentId", "status"]
+    },
+    "history": {
+      "collection": "memory_history",
+      "requiredDataFields": ["eventType", "occurredAt"]
+    },
+    "logs": {
+      "collection": "memory_logs",
+      "requiredDataFields": ["level", "message", "occurredAt"]
+    }
+  }
+}

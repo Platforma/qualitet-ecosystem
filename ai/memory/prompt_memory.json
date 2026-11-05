@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-11-04T22:23:31+01:00",
+  "registry": "ai/memory/AGENT_REGISTRY.json",
+  "promptDirectory": "ai/agents/prompts/",
+  "registeredAgents": 15,
+  "enabledAgents": 15,
+  "agentIds": [
+    "AI_QUALITET",
+    "AI_DEVELOPER",
+    "AI_GRAFIK_SZEF",
+    "AI_MARKETING",
+    "AI_SEO",
+    "AI_RESEARCH",
+    "AI_BIZNES",
+    "AI_SUPPORT",
+    "AI_CLOUD",
+    "AI_OWNER",
+    "AI_HELPDESK",
+    "AI_SALES",
+    "AI_CRM",
+    "AI_CONTENT",
+    "AI_SOCIAL_MEDIA"
+  ],
+  "promptHandling": {
+    "backend": "Registry-driven AI router routes enabled agents, verifies prompts and injects shared project memory into every chat.",
+    "status": "GET /api/ai/status reports registered, enabled and prompt-ready agents.",
+    "sharedProjectMemoryFiles": [
+      "architecture_memory.json",
+      "project_memory.json",
+      "integration_memory.json",
+      "business_memory.json",
+      "roadmap_memory.json",
+      "marketplace_memory.json",
+      "partner_memory.json",
+      "supplier_memory.json",
+      "domain_memory.json",
+      "prompt_memory.json"
+    ],
+    "ownerTools": [
+      "app/api/owner/settings/prompts/route.ts",
+      "app/api/owner/settings/files/route.ts"
+    ],
+    "secrets": "Do not store tokens, passwords, private customer data or credentials in prompts."
+  },
+  "history": [
+    "Backend tests assert the registry and prompt set contain 15 agents."
+  ]
+}

@@ -1,8 +1,17 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: dark;
+  --background: #0b0f19;
+  --foreground: #f9fafb;
+  --sidebar: #111827;
+  --card: #1f2937;
+  --border: #374151;
+  --input: #111827;
+  --input-border: #4b5563;
+  --focus: #3b82f6;
+  --description: #d1d5db;
+  --muted: #9ca3af;
 }
 
 @theme inline {
@@ -12,15 +21,148 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
+  min-height: 100%;
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Keep legacy Tailwind surfaces in the command center on the dark palette. */
+[class~="bg-white"],
+[class~="bg-white/90"],
+[class*="bg-white/"],
+[class~="bg-slate-50"],
+[class~="bg-slate-50/70"],
+[class~="bg-slate-100"] {
+  background-color: var(--card) !important;
+}
+
+[class*="bg-slate-50/"] {
+  background-color: var(--card) !important;
+}
+
+[class*="border-slate-"],
+[class*="border-white"],
+[class*="divide-slate-"] > :not(:last-child) {
+  border-color: var(--border) !important;
+}
+
+[class~="text-slate-950"],
+[class~="text-slate-900"],
+[class~="text-slate-800"] {
+  color: var(--foreground) !important;
+}
+
+[class~="text-slate-700"],
+[class~="text-slate-600"] {
+  color: var(--description) !important;
+}
+
+[class~="text-slate-500"],
+[class~="text-slate-400"] {
+  color: var(--muted) !important;
+}
+
+[class~="bg-rose-50"] {
+  background-color: rgb(127 29 29 / 0.24) !important;
+}
+
+[class~="bg-amber-50"] {
+  background-color: rgb(120 53 15 / 0.24) !important;
+}
+
+[class~="bg-emerald-50"] {
+  background-color: rgb(6 78 59 / 0.24) !important;
+}
+
+[class~="bg-indigo-50"],
+[class~="bg-sky-50"] {
+  background-color: rgb(30 64 175 / 0.22) !important;
+}
+
+[class~="border-rose-100"],
+[class~="border-rose-200"],
+[class~="border-rose-300"] {
+  border-color: rgb(251 113 133 / 0.3) !important;
+}
+
+[class~="text-rose-900"],
+[class~="text-rose-700"] {
+  color: #fda4af !important;
+}
+
+[class~="text-amber-700"] {
+  color: #fcd34d !important;
+}
+
+[class~="text-emerald-700"] {
+  color: #6ee7b7 !important;
+}
+
+[class~="text-indigo-700"],
+[class~="text-indigo-600"],
+[class~="text-sky-700"] {
+  color: #93c5fd !important;
+}
+
+[class~="hover:bg-slate-50"]:hover,
+[class~="hover:bg-white"]:hover,
+[class~="hover:bg-white/4"]:hover,
+[class~="hover:bg-white/10"]:hover {
+  background-color: #293548 !important;
+}
+
+input,
+textarea,
+select {
+  color-scheme: dark;
+  background-color: var(--input);
+  border-color: var(--input-border);
+  color: #fff;
+}
+
+input[class*="bg-white"],
+input[class*="bg-slate-"],
+textarea[class*="bg-white"],
+select[class*="bg-white"] {
+  background-color: var(--input) !important;
+}
+
+input[class*="border-slate-"],
+textarea[class*="border-slate-"],
+select[class*="border-slate-"] {
+  border-color: var(--input-border) !important;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--focus) !important;
+  outline-color: var(--focus);
+  box-shadow: 0 0 0 2px rgb(59 130 246 / 0.2);
+}
+
+input:focus[class*="focus:border-"],
+textarea:focus[class*="focus:border-"],
+select:focus[class*="focus:border-"] {
+  border-color: var(--focus) !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--muted);
+}
+
+tbody tr {
+  background-color: var(--card);
+}
+
+tbody tr:hover {
+  background-color: #293548;
+}
+
+::selection {
+  background: rgb(59 130 246 / 0.35);
+  color: #fff;
 }

@@ -1,34 +1,111 @@
 {
-  "version": "1.0",
+  "version": "3.0",
   "orchestrator": "AI_QUALITET",
   "agents": [
     {
       "name": "AI_QUALITET",
-      "role": "orchestrator"
+      "role": "orchestrator",
+      "enabled": true,
+      "capabilities": ["task orchestration", "agent routing", "shared project context"],
+      "prompt": "ai/agents/prompts/AI_QUALITET.md"
     },
     {
       "name": "AI_DEVELOPER",
-      "role": "developer"
+      "role": "developer",
+      "enabled": true,
+      "capabilities": ["Next.js", "TypeScript", "MongoDB", "API", "Render", "Cloudflare"],
+      "prompt": "ai/agents/prompts/AI_DEVELOPER.md"
     },
     {
       "name": "AI_GRAFIK_SZEF",
-      "role": "designer"
+      "role": "designer",
+      "enabled": true,
+      "capabilities": ["visual design", "branding", "graphics"],
+      "prompt": "ai/agents/prompts/AI_GRAFIK_SZEF.md"
     },
     {
       "name": "AI_MARKETING",
-      "role": "marketing"
+      "role": "marketing",
+      "enabled": true,
+      "capabilities": ["Facebook", "TikTok", "YouTube", "Google", "SEO", "campaign strategy"],
+      "prompt": "ai/agents/prompts/AI_MARKETING.md"
     },
     {
       "name": "AI_SEO",
-      "role": "seo"
+      "role": "seo",
+      "enabled": true,
+      "capabilities": ["meta", "sitemap", "robots", "schema.org", "technical SEO"],
+      "prompt": "ai/agents/prompts/AI_SEO.md"
     },
     {
       "name": "AI_RESEARCH",
-      "role": "research"
+      "role": "research",
+      "enabled": true,
+      "capabilities": ["competitors", "trends", "product and feature research"],
+      "prompt": "ai/agents/prompts/AI_RESEARCH.md"
     },
     {
       "name": "AI_BIZNES",
-      "role": "business"
+      "role": "business",
+      "enabled": true,
+      "capabilities": ["business strategy", "business models", "unit economics"],
+      "prompt": "ai/agents/prompts/AI_BIZNES.md"
+    },
+    {
+      "name": "AI_SUPPORT",
+      "role": "support",
+      "enabled": true,
+      "capabilities": ["tickets", "user reports", "errors", "incident escalation"],
+      "prompt": "ai/agents/prompts/AI_SUPPORT.md"
+    },
+    {
+      "name": "AI_CLOUD",
+      "role": "cloud",
+      "enabled": true,
+      "capabilities": ["Render", "Cloudflare", "MongoDB", "infrastructure"],
+      "prompt": "ai/agents/prompts/AI_CLOUD.md"
+    },
+    {
+      "name": "AI_OWNER",
+      "role": "owner",
+      "enabled": true,
+      "capabilities": ["roadmap", "tasks", "priorities", "reports"],
+      "prompt": "ai/agents/prompts/AI_OWNER.md"
+    },
+    {
+      "name": "AI_HELPDESK",
+      "role": "helpdesk",
+      "enabled": true,
+      "capabilities": ["help center", "knowledge base", "support triage"],
+      "prompt": "ai/agents/prompts/AI_HELPDESK.md"
+    },
+    {
+      "name": "AI_SALES",
+      "role": "sales",
+      "enabled": true,
+      "capabilities": ["leads", "CRM sales process", "campaigns"],
+      "prompt": "ai/agents/prompts/AI_SALES.md"
+    },
+    {
+      "name": "AI_CRM",
+      "role": "crm",
+      "enabled": true,
+      "capabilities": ["customers", "companies", "suppliers", "wholesalers", "partners"],
+      "prompt": "ai/agents/prompts/AI_CRM.md"
+    },
+    {
+      "name": "AI_CONTENT",
+      "role": "content",
+      "enabled": true,
+      "capabilities": ["product copy", "articles", "landing pages"],
+      "prompt": "ai/agents/prompts/AI_CONTENT.md"
+    },
+    {
+      "name": "AI_SOCIAL_MEDIA",
+      "role": "social-media",
+      "enabled": true,
+      "capabilities": ["social posts", "ad copy", "descriptions"],
+      "prompt": "ai/agents/prompts/AI_SOCIAL_MEDIA.md"
     }
   ]
 }

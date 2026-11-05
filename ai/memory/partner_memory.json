@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-11-01T13:39:52+01:00",
+  "publicPage": "/partner",
+  "programIntent": [
+    "Partner Program",
+    "Afiliacja",
+    "Prowizje za sprzedaż produktów"
+  ],
+  "database": {
+    "membershipCollection": "company_memberships",
+    "statistics": "Supplier statistics count active partner memberships created in the current month."
+  },
+  "currentState": {
+    "partnerPageExists": true,
+    "partnerSignupFlowVerified": false,
+    "partnerManagementApiVerified": false,
+    "productPartnerPublication": "Product records carry partnerProgram publication metadata; an operational downstream feed or partner catalog is not verified."
+  },
+  "privacy": "Partner identities and contact details are stored in MongoDB, not in version-controlled project memory."
+}

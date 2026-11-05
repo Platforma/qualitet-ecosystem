@@ -1,0 +1,61 @@
+{
+  "version": 1,
+  "workflows": [
+    {
+      "id": "route-and-answer",
+      "trigger": "POST /api/ai/chat",
+      "steps": ["validate-request", "route-enabled-agent", "load-agent-prompt", "load-shared-project-memory", "create-task", "call-ollama", "persist-result", "write-history-and-log"],
+      "requiresApproval": false,
+      "sideEffects": ["MongoDB task, history and log writes"]
+    },
+    {
+      "id": "memory-read",
+      "trigger": "GET /api/ai/memory/:section",
+      "steps": ["authenticate", "validate-section", "scope-by-owner", "search-or-read"],
+      "requiresApproval": false,
+      "sideEffects": []
+    },
+    {
+      "id": "memory-write",
+      "trigger": "POST /api/ai/memory/:section",
+      "steps": ["authenticate", "validate-payload", "validate-section-schema", "scope-by-owner", "insert-record"],
+      "requiresApproval": true,
+      "sideEffects": ["MongoDB insert"]
+    },
+    {
+      "id": "memory-update-and-archive",
+      "trigger": "PATCH or DELETE /api/ai/memory/:section/:key",
+      "steps": ["authenticate", "validate-payload", "scope-by-owner", "validate-merged-record", "update-or-soft-archive"],
+      "requiresApproval": true,
+      "sideEffects": ["MongoDB update"]
+    },
+    {
+      "id": "ollama-health",
+      "trigger": "GET /api/ai/health",
+      "steps": ["authenticate", "check-ollama-version", "check-model-list", "report-memory-configuration"],
+      "requiresApproval": false,
+      "sideEffects": []
+    },
+    {
+      "id": "self-repair-review",
+      "trigger": "owner-approved repair request",
+      "steps": ["inspect-git-state", "reproduce-error", "identify-root-cause", "prepare-surgical-diff", "run-targeted-validation", "report"],
+      "requiresApproval": true,
+      "sideEffects": ["local source changes only after approval"]
+    },
+    {
+      "id": "self-validation",
+      "trigger": "after AI code change",
+      "steps": ["validate-input-contracts", "run-targeted-tests", "run-lint", "run-types", "run-build-when-safe", "report-exit-codes"],
+      "requiresApproval": false,
+      "sideEffects": []
+    },
+    {
+      "id": "project-security-audit",
+      "trigger": "owner-requested audit",
+      "steps": ["scope-read-only-scan", "check-auth-and-validation", "check-dependencies", "check-secret-handling", "rank-evidence-and-risk"],
+      "requiresApproval": false,
+      "sideEffects": []
+    }
+  ]
+}

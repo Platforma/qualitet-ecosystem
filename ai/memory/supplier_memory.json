@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-11-02T10:15:19+01:00",
+  "supportedSupplierTypes": ["manufacturer", "wholesaler", "importer", "distributor", "brand"],
+  "leadStatuses": ["NEW", "CONTACTED", "OPENED", "CLICKED", "REGISTERED", "ACTIVE", "REJECTED"],
+  "companyStatuses": ["pending", "active", "rejected", "suspended"],
+  "models": {
+    "Company": ["name", "slug", "email", "phone", "website", "country", "type", "categories", "status", "commissionDefault", "adBudget", "productsCount", "salesCount", "ownerUserId", "marketingConsent", "logoUrl", "createdAt", "updatedAt"],
+    "Lead": ["name", "companyName", "website", "email", "phone", "source", "status", "notes", "categories", "suggestedDescription", "suggestedTags", "suggestedSeoTitle", "suggestedCommission", "marketingConsent", "createdAt", "updatedAt"],
+    "OutreachCampaign": ["name", "subject", "message", "followUps", "status", "sent", "opened", "clicked", "registered", "createdBy", "createdAt", "updatedAt"],
+    "SupplierProduct": ["companyId", "name", "description", "sku", "wholesalePrice", "retailPrice", "currency", "partnerCommission", "status", "publication", "createdAt", "updatedAt"]
+  },
+  "marketplaceProductModel": {
+    "source": "apps/henryk-command-center-next/lib/models/product.ts",
+    "fields": ["name", "description", "sku", "price", "wholesalePrice", "currency", "partnerCommission", "supplierCompanyId", "storeId", "status", "publication", "createdBy", "createdAt", "updatedAt"],
+    "api": "GET /api/products exposes only active, non-archived public catalog fields."
+  },
+  "commerceModels": {
+    "cart": "Customer-owned cart; item prices are resolved again when an order is created.",
+    "order": "Stores a purchase-time snapshot of product names, unit prices, currency, quantities and totals.",
+    "payment": "Stripe payment lifecycle model; no checkout or webhook handler is active."
+  },
+  "routes": {
+    "publicRegistration": "POST /api/suppliers/register",
+    "supplierProducts": ["GET /api/suppliers/products", "POST /api/suppliers/products"],
+    "supplierProductCsvImport": "POST /api/suppliers/products/import",
+    "supplierSettings": "PATCH /api/suppliers/settings",
+    "adminCompanyUpdate": "PATCH /api/admin/suppliers/[id]",
+    "adminStats": "GET /api/admin/suppliers/stats",
+    "adminLeadImport": "POST /api/admin/outreach/import",
+    "adminCampaigns": ["GET /api/admin/outreach/campaigns", "POST /api/admin/outreach/campaigns"]
+  },
+  "implemented": {
+    "publicFormFields": ["company name", "email", "phone", "website", "country", "type", "categories", "logo URL", "optional marketing consent"],
+    "registrationWrites": ["companies", "leads", "crm_contacts", "audit_logs"],
+    "leadImports": ["CSV", "XLSX"],
+    "productImports": ["CSV"],
+    "fileLimit": "2 MB; at most 1000 records per import",
+    "websiteFetch": "Not performed; URLs are stored after HTTPS validation to avoid arbitrary server-side fetches.",
+    "logoStorage": "HTTPS URL only; binary upload/storage is not implemented.",
+    "productActivation": "Requires active Company and ownerUserId assigned by administrator.",
+    "productListing": "Active products are written to products; publication metadata marks marketplace, partner program and AI Qualitet."
+  },
+  "outreach": {
+    "emailDelivery": "Not implemented.",
+    "campaignState": "Campaign API creates draft only.",
+    "consentRule": "Imported leads default to marketingConsent=false; no bulk sending is enabled."
+  },
+  "privacy": "Actual firm, partner and contact records belong in MongoDB collections, not these checked-in memory snapshots."
+}

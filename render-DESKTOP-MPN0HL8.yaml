@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: qualitet-henryk-command-center
+    runtime: node
+    plan: free
+    rootDir: .
+    buildCommand: cd apps/henryk-command-center-next && npm ci --include=dev && npm run build
+    startCommand: cd apps/henryk-command-center-next && npm run start
+    healthCheckPath: /api/health
+    autoDeployTrigger: off

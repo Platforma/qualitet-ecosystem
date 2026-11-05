@@ -1,0 +1,116 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-11-04T22:23:31+01:00",
+  "runtimes": {
+    "web": {
+      "path": "apps/henryk-command-center-next",
+      "framework": "Next.js 16 App Router",
+      "language": "TypeScript",
+      "ui": ["React 19", "Tailwind CSS"],
+      "databaseClient": "MongoDB Node driver",
+      "dependencies": {
+        "next": "16.4.3",
+        "react": "19.3.0",
+        "mongodb": "^6.21.0",
+        "exceljs": "^4.4.0",
+        "typescript": "^5",
+        "tailwindcss": "^4"
+      }
+    },
+    "ai": {
+      "path": "backend",
+      "runtime": "Node.js",
+      "httpServer": "Node.js http server in backend/server.js",
+      "router": "backend/routes/ai.routes.js",
+      "memoryEngine": "backend/memory/memory.engine.js",
+      "ollamaClient": "backend/services/ollama.service.js",
+      "ollamaClientStatus": "Klient ma implementacje generate/chat/embedding/modelStatus/healthCheck; backend testy jednostkowe przechodzą, live Ollama niezweryfikowana."
+    },
+    "aiAgents": {
+      "registry": "ai/memory/AGENT_REGISTRY.json",
+      "enabledPromptAgents": 15,
+      "statusEndpoint": "GET /api/ai/status",
+      "sharedMemoryContext": "Każda rozmowa AI otrzymuje 10 wersjonowanych snapshotów z ai/memory."
+    }
+  },
+  "routing": {
+    "publicHost": "qualitet-market.com",
+    "adminHost": "admin.qualitet-market.com",
+    "domainIntent": {
+      "qualitet-market.com": "Marketplace",
+      "admin.qualitet-market.com": "Owner Studio",
+      "shop.qualitet-market.com": "AI Store Builder"
+    },
+    "domainVerification": "Hosty admin i shop są docelową architekturą; DNS, TLS i routowanie produkcyjne nie zostały potwierdzone.",
+    "publicPages": ["/", "/market", "/partner", "/supplier", "/ai", "/live", "/login", "/register"],
+    "supplierPages": ["/supplier/register", "/supplier/dashboard"],
+    "adminPages": ["/admin/setup", "/admin/integrations", "/admin/checklist", "/admin/system", "/admin/automation", "/admin/companies", "/admin/leads", "/admin/outreach", "/admin/campaigns", "/admin/outreach/import", "/admin/companies/stats"],
+    "ownerHome": "admin.qualitet-market.com redirects authenticated owners to /admin/checklist.",
+    "ownerSetupApi": "Owner-only GET|PUT|POST|DELETE /api/admin/setup; integration config is stored in integration_configs.",
+    "publicApiAllowlistIncludes": ["/api/suppliers/register", "/api/suppliers/products", "/api/suppliers/products/import", "/api/suppliers/settings"],
+    "productApi": "GET /api/products zwraca maksymalnie 50 aktywnych, niearchiwalnych produktów bez danych dostawcy i cen hurtowych.",
+    "adminAuthorization": "Admin Supplier Acquisition pages and APIs require the owner role."
+  },
+  "persistence": {
+    "appDatabase": "MONGODB_URI and optional MONGODB_DATABASE",
+    "aiMemoryDatabase": "MONGODB_URI and optional MONGODB_DATABASE; defaults from URI or qualitet_memory",
+    "memoryRetention": "backend/memory/memory.engine.js TTLs tasks/history/logs after 90 days",
+    "versionedSnapshots": "ai/memory/*.json",
+    "secretsPolicy": "Integration credentials are AES-256-GCM encrypted in MongoDB using a key derived from stable SESSION_SECRET; never put credential values, tokens, passwords or connection strings in checked-in memory. Mongo bootstrap URI and SESSION_SECRET remain host-level bootstrap settings."
+  },
+  "mongoCollections": {
+    "application": [
+      "users",
+      "auth_sessions",
+      "auth_attempts",
+      "companies",
+      "company_memberships",
+      "categories",
+      "products",
+      "carts",
+      "orders",
+      "stores",
+      "leads",
+      "crm_contacts",
+      "outreach_campaigns",
+      "campaigns",
+      "ad_accounts",
+      "subscriptions",
+      "payments",
+      "memory_entries",
+      "history_events",
+      "audit_logs",
+      "alerts",
+      "ai_agents",
+      "ai_tasks",
+      "integrations",
+      "integration_configs",
+      "owner_settings",
+      "marketplace_ads",
+      "analytics_events",
+      "system_health"
+    ],
+    "aiMemory": [
+      "memory_users",
+      "memory_projects",
+      "memory_companies",
+      "memory_prompts",
+      "memory_agents",
+      "memory_tasks",
+      "memory_history",
+      "memory_logs"
+    ],
+    "supplierRelevant": ["companies", "leads", "crm_contacts", "outreach_campaigns", "products", "company_memberships", "audit_logs"]
+  },
+  "verification": {
+    "eslint": "passed",
+    "typescript": "passed",
+    "nextBuildWebpack": "passed",
+    "ownerControlCenter": "webpack production build and all 53 route prerenders passed; MongoDB/provider connectivity not live-tested",
+    "mongodbConnection": "not verified; MONGODB_URI is not configured in the inspected local environment",
+    "dns": "not verified"
+  },
+  "history": [
+    "Older memory files describe Next.js 15 and Express. Current inspected web package is Next.js 16; backend/server.js uses Node.js http directly."
+  ]
+}

@@ -1,0 +1,154 @@
+import { connection, NextResponse } from "next/server";
+import { databaseCollections } from "../../../lib/database-collections";
+import { requireUser } from "../../../lib/server/auth";
+import { getDatabase } from "../../../lib/server/database";
+
+type CollectionState = "present" | "missing" | "unavailable" | "unconfigured";
+type DatabaseState = "connected" | "unavailable" | "unconfigured";
+
+type DatabaseResponse = {
+  checkedAt: string;
+  state: DatabaseState;
+  databaseName: string | null;
+  collections: { name: string; state: CollectionState }[];
+  actualCollections: {
+    name: string;
+    count: number;
+    indexes: { name: string; keys: Record<string, number | string>; unique: boolean; expireAfterSeconds: number | null }[];
+  }[];
+};
+
+const cacheDurationMs = 30_000;
+let cachedResponse: { expiresAt: number; body: DatabaseResponse } | null = null;
+let pendingCheck: Promise<DatabaseResponse> | null = null;
+
+function getDatabaseName(uri: string): string | null {
+  const configuredName = process.env.MONGODB_DATABASE?.trim();
+  if (configuredName) {
+    return configuredName;
+  }
+
+  try {
+    const path = new URL(uri).pathname.replace(/^\//, "");
+    return path ? decodeURIComponent(path) : null;
+  } catch {
+    return null;
+  }
+}
+
+function createResponse(
+  state: DatabaseState,
+  collectionState: CollectionState,
+  presentNames: Set<string> = new Set(),
+  databaseName: string | null = null,
+  actualCollections: DatabaseResponse["actualCollections"] = [],
+): DatabaseResponse {
+  return {
+    checkedAt: new Date().toISOString(),
+    state,
+    databaseName,
+    collections: databaseCollections.map(({ name }) => ({
+      name,
+      state:
+        collectionState === "present" || collectionState === "missing"
+          ? presentNames.has(name)
+            ? "present"
+            : "missing"
+          : collectionState,
+    })),
+    actualCollections,
+  };
+}
+
+async function checkDatabase(): Promise<DatabaseResponse> {
+  const uri = process.env.MONGODB_URI;
+  const databaseName = uri ? getDatabaseName(uri) : null;
+
+  if (!uri || !databaseName) {
+    return createResponse("unconfigured", "unconfigured");
+  }
+
+  try {
+    const database = await getDatabase();
+    await database.admin().command({ ping: 1 });
+    const collections = await database
+      .listCollections({}, { nameOnly: true })
+      .toArray();
+    const presentNames = new Set(collections.map(({ name }) => name));
+    const actualCollections = await Promise.all(
+      collections.map(async ({ name }) => {
+        const collection = database.collection(name);
+        const [count, indexes] = await Promise.all([
+          collection.estimatedDocumentCount(),
+          collection.listIndexes().toArray(),
+        ]);
+        return {
+          name,
+          count,
+          indexes: indexes.map((index) => ({
+            name: index.name ?? "_id_",
+            keys: index.key as Record<string, number | string>,
+            unique: index.unique === true,
+            expireAfterSeconds:
+              typeof index.expireAfterSeconds === "number"
+                ? index.expireAfterSeconds
+                : null,
+          })),
+        };
+      }),
+    );
+
+    return createResponse(
+      "connected",
+      "present",
+      presentNames,
+      database.databaseName,
+      actualCollections.sort((left, right) => left.name.localeCompare(right.name)),
+    );
+  } catch {
+    return createResponse("unavailable", "unavailable");
+  }
+}
+
+export async function GET(request: Request) {
+  const auth = await requireUser(request);
+  if ("response" in auth) return auth.response;
+  try {
+    await connection();
+    const forceRefresh =
+      new URL(request.url).searchParams.get("refresh") === "1";
+
+    if (
+      !forceRefresh &&
+      cachedResponse &&
+      cachedResponse.expiresAt > Date.now()
+    ) {
+      return NextResponse.json(cachedResponse.body, {
+        headers: { "Cache-Control": "no-store" },
+      });
+    }
+
+    if (forceRefresh) {
+      cachedResponse = null;
+    }
+
+    pendingCheck ??= checkDatabase()
+      .then((body) => {
+        cachedResponse = { body, expiresAt: Date.now() + cacheDurationMs };
+        return body;
+      })
+      .finally(() => {
+        pendingCheck = null;
+      });
+
+    const body = await pendingCheck;
+    return NextResponse.json(body, {
+      headers: { "Cache-Control": "no-store" },
+    });
+  } catch {
+    return NextResponse.json(
+      { error: "Nie udało się odczytać statusu kolekcji MongoDB." },
+      { status: 500, headers: { "Cache-Control": "no-store" } },
+    );
+  }
+}

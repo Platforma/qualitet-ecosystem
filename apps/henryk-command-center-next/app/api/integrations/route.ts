@@ -1,186 +1,235 @@
-import { MongoClient } from "mongodb";
-import { connection, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
+import { hasRole, requireUser } from "../../../lib/server/auth";
+import {
+  isOwnerIntegrationConfigured,
+  ownerIntegrations,
+} from "../../../lib/owner-integrations";
+import {
+  getOwnerIntegrationSummaries,
+  getOwnerIntegrationValues,
+} from "../../../lib/server/owner-config";
+import { getCollection } from "../../../lib/server/database";
 
-type IntegrationState = "connected" | "unavailable" | "unconfigured";
+const ecosystemDomains = [
+  { domain: "qualitet-market.com", service: "qualitet-henryk-command-center" },
+  { domain: "admin.qualitet-market.com", service: "qualitet-henryk-command-center" },
+  { domain: "shop.qualitet-market.com", service: "qualitet-shop-builder" },
+  { domain: "ai.qualitet-market.com", service: "qualitet-ai-backend" },
+] as const;
 
-type IntegrationStatus = {
-  id: string;
-  state: IntegrationState;
-  message: string;
-};
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
 
-type IntegrationsResponse = {
-  checkedAt: string;
-  integrations: IntegrationStatus[];
-};
-
-const cacheDurationMs = 30_000;
-let cachedResponse: { expiresAt: number; body: IntegrationsResponse } | null =
-  null;
-let pendingCheck: Promise<IntegrationsResponse> | null = null;
-
-async function checkHttpEndpoint(
-  url: string,
-  headers: HeadersInit,
-  validate?: (response: Response) => Promise<boolean>,
-): Promise<boolean> {
+function safeDisplayUrl(value: string) {
   try {
-    const response = await fetch(url, {
-      headers,
-      redirect: "error",
-      signal: AbortSignal.timeout(4_000),
-      cache: "no-store",
-    });
-
-    return response.ok && (validate ? await validate(response) : true);
+    const url = new URL(value);
+    url.username = "";
+    url.password = "";
+    url.search = "";
+    url.hash = "";
+    return url.toString().replace(/\/$/, "");
   } catch {
-    return false;
+    return "";
   }
 }
 
-async function checkMongoDb(uri: string): Promise<boolean> {
-  const client = new MongoClient(uri, {
-    connectTimeoutMS: 4_000,
-    maxPoolSize: 1,
-    minPoolSize: 0,
-    serverSelectionTimeoutMS: 4_000,
-  });
+async function getCloudflareStatus() {
+  const config = await getOwnerIntegrationValues("cloudflare");
+  const apiToken = config?.apiToken?.trim() ?? "";
+  const zoneId = config?.zoneId?.trim() ?? "";
+  const domains = ecosystemDomains.map(({ domain, service }) => ({
+    domain,
+    service,
+    dns: null as boolean | null,
+    proxied: null as boolean | null,
+  }));
+  if (!apiToken || !zoneId) {
+    return {
+      configured: false,
+      zoneAvailable: null,
+      sslMode: null,
+      domains,
+      error: null,
+    };
+  }
 
+  const headers = { Authorization: `Bearer ${apiToken}` };
   try {
-    await client.connect();
-    await client.db().admin().command({ ping: 1 });
-    return true;
-  } catch {
-    return false;
-  } finally {
-    try {
-      await client.close();
-    } catch {
-      // The connection status is already determined by the ping result.
-    }
-  }
-}
-
-function getOllamaTagsUrl(configuredUrl: string): string | null {
-  try {
-    const url = new URL(configuredUrl);
-    if (
-      !["http:", "https:"].includes(url.protocol) ||
-      url.username ||
-      url.password ||
-      url.search ||
-      url.hash
-    ) {
-      return null;
-    }
-
-    const basePath = url.pathname.replace(/\/+$/, "").replace(/\/api$/, "");
-    url.pathname = `${basePath}/api/tags`;
-    return url.toString();
-  } catch {
-    return null;
-  }
-}
-
-function createStatus(
-  id: string,
-  isConfigured: boolean,
-  isConnected: boolean,
-): IntegrationStatus {
-  if (!isConfigured) {
-    return { id, state: "unconfigured", message: "Brak konfiguracji serwera" };
-  }
-
-  return isConnected
-    ? { id, state: "connected", message: "Połączenie potwierdzone" }
-    : { id, state: "unavailable", message: "Nie udało się potwierdzić połączenia" };
-}
-
-async function checkIntegrations(): Promise<IntegrationsResponse> {
-  const cloudflareToken = process.env.CLOUDFLARE_API_TOKEN;
-  const mongodbUri = process.env.MONGODB_URI;
-  const ollamaTagsUrl = process.env.OLLAMA_URL
-    ? getOllamaTagsUrl(process.env.OLLAMA_URL)
-    : null;
-  const renderApiKey = process.env.RENDER_API_KEY;
-  const githubToken = process.env.GITHUB_PAT;
-
-  const [cloudflare, mongodb, ollama, render, github] = await Promise.all([
-    cloudflareToken
-      ? checkHttpEndpoint(
-          "https://api.cloudflare.com/client/v4/user/tokens/verify",
-          { Authorization: `Bearer ${cloudflareToken}` },
-          async (response) => {
-            const result: unknown = await response.json();
-            return (
-              typeof result === "object" &&
-              result !== null &&
-              "success" in result &&
-              result.success === true
-            );
-          },
-        )
-      : Promise.resolve(false),
-    mongodbUri ? checkMongoDb(mongodbUri) : Promise.resolve(false),
-    ollamaTagsUrl
-      ? checkHttpEndpoint(ollamaTagsUrl, {})
-      : Promise.resolve(false),
-    renderApiKey
-      ? checkHttpEndpoint("https://api.render.com/v1/owners?limit=1", {
-          Authorization: `Bearer ${renderApiKey}`,
-        })
-      : Promise.resolve(false),
-    githubToken
-      ? checkHttpEndpoint(
-          "https://api.github.com/user",
+    const [zoneResponse, sslResponse, ...recordResponses] = await Promise.all([
+      fetch(`https://api.cloudflare.com/client/v4/zones/${encodeURIComponent(zoneId)}`, {
+        headers,
+        cache: "no-store",
+        signal: AbortSignal.timeout(8_000),
+      }),
+      fetch(`https://api.cloudflare.com/client/v4/zones/${encodeURIComponent(zoneId)}/settings/ssl`, {
+        headers,
+        cache: "no-store",
+        signal: AbortSignal.timeout(8_000),
+      }),
+      ...domains.map(({ domain }) =>
+        fetch(
+          `https://api.cloudflare.com/client/v4/zones/${encodeURIComponent(zoneId)}/dns_records?${new URLSearchParams({ name: domain, per_page: "100" })}`,
           {
-            Accept: "application/vnd.github+json",
-            Authorization: `Bearer ${githubToken}`,
-            "X-GitHub-Api-Version": "2022-11-28",
+            headers,
+            cache: "no-store",
+            signal: AbortSignal.timeout(8_000),
           },
-        )
-      : Promise.resolve(false),
-  ]);
-
-  return {
-    checkedAt: new Date().toISOString(),
-    integrations: [
-      createStatus("cloudflare", Boolean(cloudflareToken), cloudflare),
-      createStatus("mongodb", Boolean(mongodbUri), mongodb),
-      createStatus("ollama", Boolean(ollamaTagsUrl), ollama),
-      createStatus("render", Boolean(renderApiKey), render),
-      createStatus("github", Boolean(githubToken), github),
-    ],
-  };
-}
-
-export async function GET() {
-  try {
-    await connection();
-
-    if (cachedResponse && cachedResponse.expiresAt > Date.now()) {
-      return NextResponse.json(cachedResponse.body, {
-        headers: { "Cache-Control": "no-store" },
-      });
+        ),
+      ),
+    ]);
+    const [zoneResult, sslResult, ...recordResults] = await Promise.all([
+      zoneResponse.json(),
+      sslResponse.json(),
+      ...recordResponses.map((response) => response.json()),
+    ]) as unknown[];
+    if (
+      !zoneResponse.ok ||
+      !sslResponse.ok ||
+      !isRecord(zoneResult) ||
+      zoneResult.success !== true ||
+      !isRecord(sslResult) ||
+      sslResult.success !== true
+    ) {
+      throw new Error("Cloudflare API nie udostępniło statusu strefy i SSL.");
     }
 
-    pendingCheck ??= checkIntegrations()
-      .then((body) => {
-        cachedResponse = { body, expiresAt: Date.now() + cacheDurationMs };
-        return body;
-      })
-      .finally(() => {
-        pendingCheck = null;
-      });
+    const sslMode =
+      isRecord(sslResult.result) && typeof sslResult.result.value === "string"
+        ? sslResult.result.value
+        : null;
+    for (const [index, result] of recordResults.entries()) {
+      const domainStatus = domains[index];
+      if (!domainStatus || !isRecord(result) || result.success !== true || !Array.isArray(result.result)) {
+        continue;
+      }
+      const records = result.result.filter(isRecord);
+      domainStatus.dns = records.length > 0;
+      domainStatus.proxied = records.some((record) => record.proxied === true);
+    }
 
-    const body = await pendingCheck;
-    return NextResponse.json(body, {
-      headers: { "Cache-Control": "no-store" },
+    return {
+      configured: true,
+      zoneAvailable: true,
+      sslMode,
+      domains,
+      error: null,
+    };
+  } catch (error) {
+    return {
+      configured: true,
+      zoneAvailable: false,
+      sslMode: null,
+      domains,
+      error: error instanceof Error ? error.message : "Cloudflare API jest niedostępne.",
+    };
+  }
+}
+
+async function getAiRuntimeStatus() {
+  const backendUrl = process.env.AI_BACKEND_URL?.trim();
+  const token = process.env.AI_API_TOKEN?.trim();
+  if (!backendUrl || !token) {
+    return {
+      enabledAgentCount: null,
+      memory: null,
+      checkedAt: null,
+      error: "AI_BACKEND_URL lub AI_API_TOKEN nie jest skonfigurowane.",
+    };
+  }
+
+  try {
+    const url = new URL("/api/ai/status", backendUrl);
+    if (url.protocol !== "https:" && url.hostname !== "localhost") {
+      throw new Error("AI_BACKEND_URL musi używać HTTPS.");
+    }
+    const response = await fetch(url, {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+      signal: AbortSignal.timeout(8_000),
     });
-  } catch {
+    const result: unknown = await response.json();
+    if (!response.ok || !isRecord(result)) {
+      throw new Error(`AI Backend zwrócił HTTP ${response.status}.`);
+    }
+    return {
+      enabledAgentCount:
+        typeof result.enabledAgentCount === "number" ? result.enabledAgentCount : null,
+      memory:
+        typeof result.memory === "string" ? result.memory : null,
+      checkedAt: typeof result.checkedAt === "string" ? result.checkedAt : null,
+      error: null,
+    };
+  } catch (error) {
+    return {
+      enabledAgentCount: null,
+      memory: null,
+      checkedAt: null,
+      error: error instanceof Error ? error.message : "AI Backend jest niedostępny.",
+    };
+  }
+}
+
+export async function GET(request: Request) {
+  const auth = await requireUser(request);
+  if ("response" in auth) return auth.response;
+  if (!hasRole(auth.user, ["owner"])) {
+    return NextResponse.json({ error: "Wymagane są uprawnienia właściciela." }, { status: 403 });
+  }
+
+  try {
+    const summaries = await getOwnerIntegrationSummaries();
+    const [ollamaConfig, cloudflare, aiRuntime, activeAgents] = await Promise.all([
+      getOwnerIntegrationValues("ollama"),
+      getCloudflareStatus(),
+      getAiRuntimeStatus(),
+      getCollection("ai_agents").then((items) =>
+        items.countDocuments({ status: "running" }),
+      ),
+    ]);
     return NextResponse.json(
-      { error: "Nie udało się sprawdzić statusu integracji." },
-      { status: 500, headers: { "Cache-Control": "no-store" } },
+      {
+        checkedAt: new Date().toISOString(),
+        integrations: ownerIntegrations.map((integration) => {
+          const config = summaries.get(integration.id);
+          const fields = config?.configuredFields ?? [];
+          const configured = isOwnerIntegrationConfigured(integration.id, fields);
+          return {
+            id: integration.id,
+            state: config?.checkStatus ?? (configured ? "unavailable" : "unconfigured"),
+            configured,
+            message: config?.checkMessage ?? (configured ? "Wymaga testu połączenia" : "Brak konfiguracji"),
+            checkedAt: config?.checkedAt ?? null,
+          };
+        }),
+        env: {
+          MONGODB_URI: Boolean(process.env.MONGODB_URI?.trim()),
+          OLLAMA_URL: Boolean(process.env.OLLAMA_URL?.trim()),
+          OLLAMA_MODEL: Boolean(process.env.OLLAMA_MODEL?.trim()),
+          AI_API_TOKEN: Boolean(process.env.AI_API_TOKEN?.trim()),
+          OWNER_EMAIL: Boolean(process.env.OWNER_EMAIL?.trim()),
+          SHOP_OWNER_EMAIL: Boolean(process.env.SHOP_OWNER_EMAIL?.trim()),
+        },
+        ollama: {
+          url: safeDisplayUrl(ollamaConfig?.baseUrl ?? process.env.OLLAMA_URL ?? ""),
+          model: ollamaConfig?.model ?? process.env.OLLAMA_MODEL ?? "",
+          status: summaries.get("ollama")?.checkStatus ?? null,
+          checkMessage: summaries.get("ollama")?.checkMessage ?? null,
+          checkedAt: summaries.get("ollama")?.checkedAt ?? null,
+          activeAgents: aiRuntime?.enabledAgentCount ?? activeAgents,
+          memory: aiRuntime?.memory ?? null,
+          aiBackendCheckedAt: aiRuntime?.checkedAt ?? null,
+          aiBackendError: aiRuntime?.error ?? null,
+        },
+        cloudflare,
+      },
+      { headers: { "Cache-Control": "no-store" } },
+    );
+  } catch (error) {
+    console.error("Integration status load failed:", error instanceof Error ? error.name : "UnknownError");
+    return NextResponse.json(
+      { error: "Nie udało się odczytać statusów integracji." },
+      { status: 503, headers: { "Cache-Control": "no-store" } },
     );
   }
 }
