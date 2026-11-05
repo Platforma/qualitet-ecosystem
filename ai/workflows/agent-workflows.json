@@ -4,7 +4,7 @@
     {
       "id": "route-and-answer",
       "trigger": "POST /api/ai/chat",
-      "steps": ["validate-request", "route-agent", "load-system-prompt", "create-task", "call-ollama", "persist-result", "write-history-and-log"],
+      "steps": ["validate-request", "route-enabled-agent", "load-agent-prompt", "load-shared-project-memory", "create-task", "call-ollama", "persist-result", "write-history-and-log"],
       "requiresApproval": false,
       "sideEffects": ["MongoDB task, history and log writes"]
     },

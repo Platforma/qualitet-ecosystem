@@ -1,9 +1,10 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-01T13:39:52+01:00",
+  "updatedAt": "2026-11-04T22:23:31+01:00",
   "registry": "ai/memory/AGENT_REGISTRY.json",
   "promptDirectory": "ai/agents/prompts/",
   "registeredAgents": 15,
+  "enabledAgents": 15,
   "agentIds": [
     "AI_QUALITET",
     "AI_DEVELOPER",
@@ -22,7 +23,20 @@
     "AI_SOCIAL_MEDIA"
   ],
   "promptHandling": {
-    "backend": "AI router reads agent prompts and routes chat tasks in backend/routes/ai.routes.js.",
+    "backend": "Registry-driven AI router routes enabled agents, verifies prompts and injects shared project memory into every chat.",
+    "status": "GET /api/ai/status reports registered, enabled and prompt-ready agents.",
+    "sharedProjectMemoryFiles": [
+      "architecture_memory.json",
+      "project_memory.json",
+      "integration_memory.json",
+      "business_memory.json",
+      "roadmap_memory.json",
+      "marketplace_memory.json",
+      "partner_memory.json",
+      "supplier_memory.json",
+      "domain_memory.json",
+      "prompt_memory.json"
+    ],
     "ownerTools": [
       "app/api/owner/settings/prompts/route.ts",
       "app/api/owner/settings/files/route.ts"

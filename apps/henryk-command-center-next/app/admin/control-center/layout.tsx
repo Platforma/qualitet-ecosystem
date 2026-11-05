@@ -3,6 +3,14 @@ import type { ReactNode } from "react";
 
 const links = [
   ["Dashboard", "/admin/control-center"],
+  ["Infrastruktura", "/admin/infrastructure"],
+  ["MongoDB", "/admin/mongodb"],
+  ["Render", "/admin/render"],
+  ["Cloudflare", "/admin/cloudflare"],
+  ["Ollama", "/admin/ollama"],
+  ["Deploy", "/admin/deploy"],
+  ["Domeny", "/admin/domains"],
+  ["ENV", "/admin/env"],
   ["Setup", "/admin/control-center/setup"],
   ["Integracje", "/admin/control-center/integrations"],
   ["Checklista", "/admin/control-center/checklist"],
@@ -12,6 +20,7 @@ const links = [
   ["Roadmapa", "/admin/control-center/roadmap"],
   ["AI Memory", "/admin/control-center/ai-memory"],
   ["Prompty", "/admin/control-center/prompts"],
+  ["System", "/admin/control-center/system"],
   ["Firmy", "/admin/control-center/companies"],
   ["Produkty", "/admin/control-center/products"],
   ["Partnerzy", "/admin/control-center/partners"],

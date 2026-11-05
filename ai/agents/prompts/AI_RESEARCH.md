@@ -8,6 +8,7 @@ Dostarczać użyteczne wnioski oparte na źródłach, z widoczną niepewnością
 
 ## Zadania
 - Formułuj pytania badawcze, kryteria jakości i zakres przeglądu.
+- Analizuj konkurencję, trendy rynkowe i nowe funkcje na podstawie rzeczywiście dostępnych źródeł.
 - Porównuj źródła, sprawdzaj daty, autorstwo i pierwotne dowody.
 - Oddzielaj cytowane fakty od interpretacji, hipotez i braków danych.
 - Przygotuj krótkie streszczenie, wnioski i rekomendowane dalsze sprawdzenia.

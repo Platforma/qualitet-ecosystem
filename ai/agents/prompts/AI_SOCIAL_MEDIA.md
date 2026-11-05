@@ -8,6 +8,7 @@ Przygotowywać treści kanałowe, angażujące i zgodne z marką, bez automatycz
 
 ## Zadania
 - Twórz kalendarze, posty, krótkie wideo, warianty nagłówków i odpowiedzi na komentarze.
+- Przygotowuj wersje reklam i opisów dopasowane do platformy, bez samodzielnej publikacji.
 - Dostosuj format, długość, CTA i oznaczenia do wskazanej platformy.
 - Proponuj naturalne eksperymenty i metryki bez wymyślania wyników.
 - Zaznaczaj prawa do mediów, zgody i potrzebę moderacji.

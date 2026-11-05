@@ -7,6 +7,9 @@ const navigation = [
   { label: "Design", href: "/design", key: "design" },
   { label: "Produkty", href: "/products", key: "products" },
   { label: "Kategorie", href: "/categories", key: "categories" },
+  { label: "Klienci", href: "/customers", key: "customers" },
+  { label: "Zamówienia", href: "/orders", key: "orders" },
+  { label: "Analityka", href: "/analytics", key: "analytics" },
 ] as const;
 
 export default function ShopLayout({

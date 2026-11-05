@@ -9,7 +9,13 @@ type DatabaseState = "connected" | "unavailable" | "unconfigured";
 type DatabaseResponse = {
   checkedAt: string;
   state: DatabaseState;
+  databaseName: string | null;
   collections: { name: string; state: CollectionState }[];
+  actualCollections: {
+    name: string;
+    count: number;
+    indexes: { name: string; keys: Record<string, number | string>; unique: boolean; expireAfterSeconds: number | null }[];
+  }[];
 };
 
 const cacheDurationMs = 30_000;
@@ -34,10 +40,13 @@ function createResponse(
   state: DatabaseState,
   collectionState: CollectionState,
   presentNames: Set<string> = new Set(),
+  databaseName: string | null = null,
+  actualCollections: DatabaseResponse["actualCollections"] = [],
 ): DatabaseResponse {
   return {
     checkedAt: new Date().toISOString(),
     state,
+    databaseName,
     collections: databaseCollections.map(({ name }) => ({
       name,
       state:
@@ -47,6 +56,7 @@ function createResponse(
             : "missing"
           : collectionState,
     })),
+    actualCollections,
   };
 }
 
@@ -65,8 +75,36 @@ async function checkDatabase(): Promise<DatabaseResponse> {
       .listCollections({}, { nameOnly: true })
       .toArray();
     const presentNames = new Set(collections.map(({ name }) => name));
+    const actualCollections = await Promise.all(
+      collections.map(async ({ name }) => {
+        const collection = database.collection(name);
+        const [count, indexes] = await Promise.all([
+          collection.estimatedDocumentCount(),
+          collection.listIndexes().toArray(),
+        ]);
+        return {
+          name,
+          count,
+          indexes: indexes.map((index) => ({
+            name: index.name ?? "_id_",
+            keys: index.key as Record<string, number | string>,
+            unique: index.unique === true,
+            expireAfterSeconds:
+              typeof index.expireAfterSeconds === "number"
+                ? index.expireAfterSeconds
+                : null,
+          })),
+        };
+      }),
+    );
 
-    return createResponse("connected", "present", presentNames);
+    return createResponse(
+      "connected",
+      "present",
+      presentNames,
+      database.databaseName,
+      actualCollections.sort((left, right) => left.name.localeCompare(right.name)),
+    );
   } catch {
     return createResponse("unavailable", "unavailable");
   }

@@ -3,8 +3,67 @@ services:
     name: qualitet-henryk-command-center
     runtime: node
     plan: free
-    rootDir: .
-    buildCommand: cd apps/henryk-command-center-next && npm ci --include=dev && npm run build
-    startCommand: cd apps/henryk-command-center-next && npm run start
+    rootDir: apps/henryk-command-center-next
+    buildCommand: npm ci --include=dev && npm run build
+    startCommand: npm run start
     healthCheckPath: /api/health
     autoDeployTrigger: off
+    envVars:
+      - key: MONGODB_URI
+        sync: false
+      - key: MONGODB_DATABASE
+        sync: false
+      - key: SESSION_SECRET
+        sync: false
+      - key: OWNER_EMAIL
+        sync: false
+      - key: OWNER_PASSWORD_HASH
+        sync: false
+      - key: AI_BACKEND_URL
+        sync: false
+      - key: AI_API_TOKEN
+        sync: false
+
+  - type: web
+    name: qualitet-shop-builder
+    runtime: node
+    plan: free
+    rootDir: apps/shop-qualitetmarket
+    buildCommand: npm ci --include=dev && npm run build
+    startCommand: npm run start
+    healthCheckPath: /login
+    autoDeployTrigger: off
+    envVars:
+      - key: MONGODB_URI
+        sync: false
+      - key: MONGODB_DATABASE
+        sync: false
+      - key: SHOP_SESSION_SECRET
+        sync: false
+      - key: SHOP_OWNER_EMAIL
+        sync: false
+      - key: SHOP_OWNER_PASSWORD_HASH
+        sync: false
+
+  - type: web
+    name: qualitet-ai-backend
+    runtime: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm ci --include=dev && npm run build
+    startCommand: npm run start
+    healthCheckPath: /
+    autoDeployTrigger: off
+    envVars:
+      - key: MONGODB_URI
+        sync: false
+      - key: MONGODB_DATABASE
+        sync: false
+      - key: AI_API_TOKEN
+        sync: false
+      - key: AI_OWNER_ID
+        sync: false
+      - key: OLLAMA_URL
+        sync: false
+      - key: OLLAMA_MODEL
+        sync: false

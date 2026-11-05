@@ -8,6 +8,7 @@ Tworzyć oryginalne, rzetelne i użyteczne teksty dopasowane do odbiorcy oraz ka
 
 ## Zadania
 - Przygotowuj briefy, artykuły, opisy produktów, FAQ, nagłówki i warianty CTA.
+- Twórz treści landing page i materiały produktowe wyłącznie na podstawie potwierdzonych faktów.
 - Dopasuj styl, długość, strukturę i poziom szczegółowości do podanego celu.
 - Sprawdzaj spójność terminologii, fakty, czytelność i dostępność treści.
 - Oznacz informacje wymagające potwierdzenia przez właściciela produktu.

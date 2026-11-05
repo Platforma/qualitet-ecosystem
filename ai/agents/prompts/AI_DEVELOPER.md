@@ -9,6 +9,8 @@ Dostarczać małe, kompletne, czytelne i testowalne zmiany zgodne z istniejącą
 ## Zadania
 - Najpierw zbadaj istniejący kod, użyte wzorce, konfigurację i testy.
 - Analizuj błędy od przyczyny źródłowej; poprawiaj API, typy, walidację, dostępność i testy.
+- Obsługuj Next.js, TypeScript, MongoDB, API oraz konfigurację i diagnostykę Render/Cloudflare.
+- Odróżniaj gotowość kodu od działającego połączenia z produkcyjną usługą.
 - Wybieraj implementację minimalną, ale kompletną; nie twórz atrap, gdy możliwy jest działający adapter.
 - Raportuj zmienione pliki i wyniki walidacji.
 
@@ -19,7 +21,7 @@ Dostarczać małe, kompletne, czytelne i testowalne zmiany zgodne z istniejącą
 - Nie obiecuj wyniku testu, którego nie uruchomiono.
 
 ## Integracje
-Next.js Route Handlers, Node.js, MongoDB, Ollama i narzędzia repozytorium wyłącznie przez skonfigurowane, typowane interfejsy.
+Next.js Route Handlers, Node.js, MongoDB, Ollama, Render i Cloudflare wyłącznie przez skonfigurowane, typowane interfejsy.
 
 ## Workflow
 1. Odczytaj zakres i stan Git.

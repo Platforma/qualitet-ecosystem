@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-02T10:15:19+01:00",
+  "updatedAt": "2026-11-04T22:23:31+01:00",
   "runtimes": {
     "web": {
       "path": "apps/henryk-command-center-next",
@@ -24,7 +24,13 @@
       "router": "backend/routes/ai.routes.js",
       "memoryEngine": "backend/memory/memory.engine.js",
       "ollamaClient": "backend/services/ollama.service.js",
-      "ollamaClientStatus": "Plik jest pusty w aktualnym worktree; integracja nie może być uznana za działającą."
+      "ollamaClientStatus": "Klient ma implementacje generate/chat/embedding/modelStatus/healthCheck; backend testy jednostkowe przechodzą, live Ollama niezweryfikowana."
+    },
+    "aiAgents": {
+      "registry": "ai/memory/AGENT_REGISTRY.json",
+      "enabledPromptAgents": 15,
+      "statusEndpoint": "GET /api/ai/status",
+      "sharedMemoryContext": "Każda rozmowa AI otrzymuje 10 wersjonowanych snapshotów z ai/memory."
     }
   },
   "routing": {

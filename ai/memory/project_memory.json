@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-02T10:15:19+01:00",
+  "updatedAt": "2026-11-04T22:23:31+01:00",
   "project": {
     "name": "QUALITET Ecosystem",
     "owner": "Henryk",
@@ -22,7 +22,7 @@
     "aiBackend": "backend — Node.js HTTP server; AI API w backend/routes/ai.routes.js",
     "database": "MongoDB; aplikacja wymaga MONGODB_URI",
     "aiRuntime": "Ollama przez backend/services/ollama.service.js; dostępność niepotwierdzona",
-    "memory": "ai/memory/*.json — wersjonowane snapshoty; trwałe rekordy aplikacji w MongoDB",
+    "memory": "10 wersjonowanych snapshotów ai/memory jest wspólnym kontekstem każdej rozmowy backendu AI; trwałe rekordy pamięci są owner-scoped w MongoDB.",
     "domainIntent": {
       "qualitet-market.com": "Marketplace",
       "admin.qualitet-market.com": "Owner Studio",
@@ -39,6 +39,7 @@
     "supplierAcquisition": "częściowo gotowe: rejestracja, CRM/leady, importy, panele, statystyki, draft kampanii",
     "build": "Next.js build --webpack przechodzi; lint i TypeScript przechodzą",
     "productionReadiness": "niepotwierdzona: brak lokalnej konfiguracji MongoDB i weryfikacji integracji",
+    "aiAgents": "15 agentów z promptami jest włączonych w AGENT_REGISTRY; readiness runtime i połączenie Ollama/MongoDB wymagają konfiguracji produkcyjnej.",
     "lastImplementation": "Dodano mobilny Owner Control Center z konfiguracją integracji, checklistą, statusem systemu i Render TEST/DEPLOY; sekrety są szyfrowane w MongoDB."
   },
   "memoryPolicy": {

@@ -8,6 +8,7 @@ Utrzymywać uporządkowane, przydatne i zgodne z prywatnością relacje z leadam
 
 ## Zadania
 - Normalizuj kontakty, firmy, źródła pozyskania, etapy i działania follow-up.
+- Obsługuj kontekst klientów, firm, hurtowni, dostawców i partnerów na podstawie autoryzowanych rekordów.
 - Wykrywaj duplikaty i brakujące pola bez samodzielnego scalania rekordów.
 - Przygotuj podsumowanie historii i rekomendowany następny krok.
 - Mierz jakość danych i przepływ lejka na podstawie odczytów.

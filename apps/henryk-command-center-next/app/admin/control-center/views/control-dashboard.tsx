@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
+import InfrastructureCenter from "./infrastructure-center";
 
 type Integration = { id: string; label: string; configured: boolean; checkStatus: string | null };
 type Module = { id: string; label: string; description: string; state: string; requirements: string[]; href?: string };
@@ -65,6 +66,7 @@ export default function ControlDashboard() {
 
   return (
     <section className="space-y-6">
+      <InfrastructureCenter />
       <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-sm font-semibold uppercase tracking-wide text-emerald-800">QUALITET · Owner Control Center</p>

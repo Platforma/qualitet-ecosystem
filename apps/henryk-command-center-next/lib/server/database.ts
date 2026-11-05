@@ -16,6 +16,29 @@ const collectionValidators: Record<string, Document> = {
       lastLoginAt: { bsonType: "date" },
     },
   },
+  roles: {
+    bsonType: "object",
+    required: ["key", "name", "permissions", "createdAt", "updatedAt"],
+    properties: {
+      key: { enum: ["owner", "admin", "user"] },
+      name: { bsonType: "string" },
+      permissions: { bsonType: "array", items: { bsonType: "string" } },
+      createdAt: { bsonType: "date" },
+      updatedAt: { bsonType: "date" },
+    },
+  },
+  permissions: {
+    bsonType: "object",
+    required: ["key", "resource", "action", "description", "createdAt", "updatedAt"],
+    properties: {
+      key: { bsonType: "string" },
+      resource: { bsonType: "string" },
+      action: { bsonType: "string" },
+      description: { bsonType: "string" },
+      createdAt: { bsonType: "date" },
+      updatedAt: { bsonType: "date" },
+    },
+  },
   ai_agents: {
     bsonType: "object",
     required: ["agentId", "name", "status", "createdAt"],
@@ -45,6 +68,19 @@ const collectionValidators: Record<string, Document> = {
       key: { bsonType: "string" },
       type: { bsonType: "string" },
       content: { bsonType: "string" },
+      createdAt: { bsonType: "date" },
+      updatedAt: { bsonType: "date" },
+    },
+  },
+  ai_memory: {
+    bsonType: "object",
+    required: ["key", "ownerId", "type", "content", "createdAt", "updatedAt"],
+    properties: {
+      key: { bsonType: "string" },
+      ownerId: { bsonType: "string" },
+      type: { bsonType: "string" },
+      content: { bsonType: "string" },
+      tags: { bsonType: "array", items: { bsonType: "string" } },
       createdAt: { bsonType: "date" },
       updatedAt: { bsonType: "date" },
     },
@@ -83,6 +119,18 @@ const collectionValidators: Record<string, Document> = {
       createdAt: { bsonType: "date" },
     },
   },
+  notifications: {
+    bsonType: "object",
+    required: ["recipientId", "type", "title", "message", "createdAt"],
+    properties: {
+      recipientId: { bsonType: "string" },
+      type: { bsonType: "string" },
+      title: { bsonType: "string" },
+      message: { bsonType: "string" },
+      readAt: { bsonType: "date" },
+      createdAt: { bsonType: "date" },
+    },
+  },
   system_health: {
     bsonType: "object",
     required: ["status", "checkedAt"],
@@ -102,6 +150,7 @@ const collectionValidators: Record<string, Document> = {
       phone: { bsonType: "string" },
       website: { bsonType: "string" },
       country: { bsonType: "string" },
+      ownerUserId: { bsonType: "string" },
       type: { enum: ["manufacturer", "wholesaler", "importer", "distributor", "brand"] },
       status: { enum: ["pending", "active", "rejected", "suspended"] },
       categories: { bsonType: "array", items: { bsonType: "string" } },
@@ -110,6 +159,40 @@ const collectionValidators: Record<string, Document> = {
       productsCount: { bsonType: ["int", "long"] },
       salesCount: { bsonType: ["int", "long"] },
       marketingConsent: { bsonType: "bool" },
+      createdAt: { bsonType: "date" },
+      updatedAt: { bsonType: "date" },
+    },
+  },
+  suppliers: {
+    bsonType: "object",
+    required: ["companyId", "status", "createdAt", "updatedAt"],
+    properties: {
+      companyId: { bsonType: "string" },
+      contactName: { bsonType: "string" },
+      email: { bsonType: "string" },
+      status: { enum: ["active", "pending", "suspended", "archived"] },
+      createdAt: { bsonType: "date" },
+      updatedAt: { bsonType: "date" },
+    },
+  },
+  partners: {
+    bsonType: "object",
+    required: ["status", "createdAt", "updatedAt"],
+    properties: {
+      companyId: { bsonType: "string" },
+      userId: { bsonType: "string" },
+      status: { enum: ["active", "pending", "suspended", "archived"] },
+      createdAt: { bsonType: "date" },
+      updatedAt: { bsonType: "date" },
+    },
+  },
+  advertisers: {
+    bsonType: "object",
+    required: ["status", "createdAt", "updatedAt"],
+    properties: {
+      companyId: { bsonType: "string" },
+      userId: { bsonType: "string" },
+      status: { enum: ["active", "pending", "suspended", "archived"] },
       createdAt: { bsonType: "date" },
       updatedAt: { bsonType: "date" },
     },
@@ -142,6 +225,21 @@ const collectionValidators: Record<string, Document> = {
       opened: { bsonType: ["int", "long"] },
       clicked: { bsonType: ["int", "long"] },
       registered: { bsonType: ["int", "long"] },
+      createdAt: { bsonType: "date" },
+      updatedAt: { bsonType: "date" },
+    },
+  },
+  campaigns: {
+    bsonType: "object",
+    required: ["name", "advertiserId", "status", "createdAt", "updatedAt"],
+    properties: {
+      name: { bsonType: "string" },
+      advertiserId: { bsonType: "string" },
+      status: { enum: ["draft", "active", "paused", "completed"] },
+      budget: { bsonType: ["double", "int", "long", "decimal"], minimum: 0 },
+      currency: { bsonType: "string", pattern: "^[A-Z]{3}$" },
+      startsAt: { bsonType: "date" },
+      endsAt: { bsonType: "date" },
       createdAt: { bsonType: "date" },
       updatedAt: { bsonType: "date" },
     },
@@ -275,8 +373,55 @@ const collectionValidators: Record<string, Document> = {
     required: ["name", "status", "createdAt"],
     properties: {
       name: { bsonType: "string" },
+      ownerUserId: { bsonType: "string" },
+      slug: { bsonType: "string" },
+      domain: { bsonType: "string" },
       status: { bsonType: "string" },
       createdAt: { bsonType: "date" },
+      updatedAt: { bsonType: "date" },
+    },
+  },
+  categories: {
+    bsonType: "object",
+    required: ["name", "slug", "createdAt", "updatedAt"],
+    properties: {
+      name: { bsonType: "string" },
+      slug: { bsonType: "string" },
+      description: { bsonType: "string" },
+      parentId: { bsonType: "string" },
+      status: { enum: ["active", "archived"] },
+      createdAt: { bsonType: "date" },
+      updatedAt: { bsonType: "date" },
+    },
+  },
+  subscriptions: {
+    bsonType: "object",
+    required: ["plan", "status", "createdAt", "updatedAt"],
+    properties: {
+      userId: { bsonType: "string" },
+      companyId: { bsonType: "string" },
+      plan: { bsonType: "string" },
+      status: { enum: ["trialing", "active", "past_due", "cancelled", "expired"] },
+      currentPeriodStart: { bsonType: "date" },
+      currentPeriodEnd: { bsonType: "date" },
+      createdAt: { bsonType: "date" },
+      updatedAt: { bsonType: "date" },
+    },
+  },
+  invoices: {
+    bsonType: "object",
+    required: ["invoiceNumber", "amount", "currency", "status", "createdAt", "updatedAt"],
+    properties: {
+      invoiceNumber: { bsonType: "string" },
+      subscriptionId: { bsonType: "string" },
+      userId: { bsonType: "string" },
+      amount: { bsonType: ["double", "int", "long", "decimal"], minimum: 0 },
+      currency: { bsonType: "string", pattern: "^[A-Z]{3}$" },
+      status: { enum: ["draft", "open", "paid", "void", "uncollectible"] },
+      dueAt: { bsonType: "date" },
+      paidAt: { bsonType: "date" },
+      createdAt: { bsonType: "date" },
+      updatedAt: { bsonType: "date" },
     },
   },
   marketplace_ads: {
@@ -296,6 +441,8 @@ const indexDefinitions: Record<
   { keys: Document; options?: { unique?: boolean; expireAfterSeconds?: number } }[]
 > = {
   users: [{ keys: { email: 1 }, options: { unique: true } }],
+  roles: [{ keys: { key: 1 }, options: { unique: true } }],
+  permissions: [{ keys: { key: 1 }, options: { unique: true } }],
   auth_sessions: [
     { keys: { sessionId: 1 }, options: { unique: true } },
     { keys: { expiresAt: 1 }, options: { expireAfterSeconds: 0 } },
@@ -308,18 +455,29 @@ const indexDefinitions: Record<
   ai_agents: [{ keys: { agentId: 1 }, options: { unique: true } }],
   ai_tasks: [{ keys: { taskId: 1 }, options: { unique: true } }, { keys: { status: 1, createdAt: -1 } }],
   memory_entries: [{ keys: { key: 1 }, options: { unique: true } }, { keys: { type: 1, updatedAt: -1 } }],
+  ai_memory: [
+    { keys: { key: 1, ownerId: 1 }, options: { unique: true } },
+    { keys: { ownerId: 1, type: 1, updatedAt: -1 } },
+  ],
   integrations: [{ keys: { provider: 1 }, options: { unique: true } }],
   integration_configs: [
     { keys: { provider: 1 }, options: { unique: true } },
     { keys: { updatedAt: -1 } },
   ],
   audit_logs: [{ keys: { createdAt: -1 } }, { keys: { actorId: 1, createdAt: -1 } }],
+  notifications: [
+    { keys: { recipientId: 1, createdAt: -1 } },
+    { keys: { recipientId: 1, readAt: 1 } },
+  ],
   system_health: [{ keys: { checkedAt: -1 } }],
   companies: [
     { keys: { email: 1 } },
     { keys: { ownerUserId: 1, status: 1 } },
     { keys: { status: 1, type: 1, createdAt: -1 } },
   ],
+  suppliers: [{ keys: { companyId: 1 }, options: { unique: true } }, { keys: { status: 1, createdAt: -1 } }],
+  partners: [{ keys: { userId: 1 } }, { keys: { companyId: 1 } }],
+  advertisers: [{ keys: { userId: 1 } }, { keys: { companyId: 1 } }],
   crm_contacts: [{ keys: { email: 1 } }, { keys: { companyId: 1 } }],
   leads: [
     { keys: { status: 1, createdAt: -1 } },
@@ -327,6 +485,10 @@ const indexDefinitions: Record<
     { keys: { website: 1 } },
   ],
   outreach_campaigns: [{ keys: { status: 1, createdAt: -1 } }],
+  campaigns: [
+    { keys: { advertiserId: 1, status: 1, createdAt: -1 } },
+    { keys: { status: 1, startsAt: 1 } },
+  ],
   products: [
     { keys: { name: 1 } },
     { keys: { status: 1 } },
@@ -346,6 +508,17 @@ const indexDefinitions: Record<
     { keys: { status: 1, createdAt: -1 } },
   ],
   stores: [{ keys: { name: 1 } }],
+  categories: [{ keys: { slug: 1 } }, { keys: { parentId: 1 } }],
+  subscriptions: [
+    { keys: { userId: 1, status: 1 } },
+    { keys: { companyId: 1, status: 1 } },
+    { keys: { currentPeriodEnd: 1 } },
+  ],
+  invoices: [
+    { keys: { invoiceNumber: 1 }, options: { unique: true } },
+    { keys: { userId: 1, createdAt: -1 } },
+    { keys: { status: 1, dueAt: 1 } },
+  ],
   marketplace_ads: [{ keys: { marketplace: 1, status: 1 } }],
 };
 
@@ -464,6 +637,59 @@ async function ensureDatabaseFoundation(database: Db) {
                 : "unconfigured",
               verification: "not_checked",
               createdAt: now,
+            },
+          },
+          { upsert: true },
+        ),
+      ),
+    );
+
+    const seededPermissions = [
+      {
+        key: "resources:read",
+        resource: "resources",
+        action: "read",
+        description: "Odczyt chronionych zasobów platformy.",
+      },
+      {
+        key: "resources:write",
+        resource: "resources",
+        action: "write",
+        description: "Tworzenie i aktualizacja dozwolonych zasobów platformy.",
+      },
+    ];
+    await Promise.all(
+      seededPermissions.map((permission) =>
+        database.collection("permissions").updateOne(
+          { key: permission.key },
+          {
+            $setOnInsert: {
+              ...permission,
+              createdAt: now,
+              updatedAt: now,
+            },
+          },
+          { upsert: true },
+        ),
+      ),
+    );
+
+    const rolePermissions: Record<string, string[]> = {
+      owner: ["resources:read", "resources:write"],
+      admin: ["resources:read", "resources:write"],
+      user: [],
+    };
+    await Promise.all(
+      Object.entries(rolePermissions).map(([key, permissions]) =>
+        database.collection("roles").updateOne(
+          { key },
+          {
+            $setOnInsert: {
+              key,
+              name: key[0].toUpperCase() + key.slice(1),
+              permissions,
+              createdAt: now,
+              updatedAt: now,
             },
           },
           { upsert: true },

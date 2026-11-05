@@ -92,11 +92,14 @@ function makeRequest({ method = "GET", url, body, token } = {}) {
   return request;
 }
 
-test("registry, prompts, and route table contain all 15 agents", () => {
+test("registry enables all 15 agents with loadable prompts", () => {
   const agents = router.listAgents();
   assert.equal(agents.length, 15);
   assert.equal(registry.agents.length, 15);
+  assert.ok(agents.every((agent) => agent.enabled && agent.promptReady));
   for (const agent of registry.agents) {
+    assert.equal(agent.enabled, true, `${agent.name} is disabled`);
+    assert.ok(agent.capabilities.length, `${agent.name} has no declared capabilities`);
     const prompt = fs.readFileSync(
       path.resolve(__dirname, "../../", agent.prompt),
       "utf8",
@@ -121,13 +124,19 @@ test("agent router dispatches required intents and defaults to orchestrator", ()
   const cases = [
     ["Przygotuj grafikę banera", "AI_GRAFIK_SZEF"],
     ["Popraw kod API", "AI_DEVELOPER"],
+    ["Zaplanuj roadmapę i priorytety kwartalne", "AI_OWNER"],
+    ["Obsłuż zgłoszenie błędu logowania", "AI_SUPPORT"],
+    ["Przygotuj kampanię dla leadów sprzedażowych", "AI_SALES"],
     ["Zaplanuj kampanię marketingową", "AI_MARKETING"],
-    ["Zrób audyt SEO", "AI_SEO"],
+    ["Dodaj sitemap, robots.txt i schema.org", "AI_SEO"],
+    ["Przygotuj posty na Facebook i TikTok", "AI_SOCIAL_MEDIA"],
+    ["Przeanalizuj hurtownie i partnerów w CRM", "AI_CRM"],
+    ["Napisz artykuł i landing page produktu", "AI_CONTENT"],
+    ["Przeanalizuj konkurencję, trendy i nowe funkcje", "AI_RESEARCH"],
+    ["Sprawdź Render i MongoDB Atlas", "AI_CLOUD"],
     ["Przeanalizuj strategię biznesową", "AI_BIZNES"],
     ["Sprawdź Cloudflare i DNS", "AI_CLOUD"],
     ["Dodaj kontakt do CRM", "AI_CRM"],
-    ["Popraw sprzedaż i ofertę", "AI_SALES"],
-    ["Przygotuj plan social media", "AI_SOCIAL_MEDIA"],
     ["Nieznane zapytanie o Qualitet", "AI_QUALITET"],
   ];
   for (const [input, expected] of cases) {
@@ -256,11 +265,13 @@ test("AI API is protected and chat persists task, history, and log", async () =>
       async modelStatus() {
         return { configuredModel: "phi3", available: true, models: ["phi3"] };
       },
-      async chat() {
+      async chat({ messages }) {
+        chatMessages = messages;
         return { model: "phi3", message: { content: "Odpowiedź testowa" } };
       },
     },
   });
+  let chatMessages;
 
   const unauthorizedResponse = makeResponse();
   await aiRouter.handle(
@@ -268,6 +279,19 @@ test("AI API is protected and chat persists task, history, and log", async () =>
     unauthorizedResponse,
   );
   assert.equal(unauthorizedResponse.statusCode, 401);
+
+  const statusResponse = makeResponse();
+  await aiRouter.handle(
+    makeRequest({ url: "/api/ai/status", token }),
+    statusResponse,
+  );
+  assert.equal(statusResponse.statusCode, 200);
+  const status = JSON.parse(statusResponse.body);
+  assert.equal(status.agentCount, 15);
+  assert.equal(status.enabledAgentCount, 15);
+  assert.equal(status.promptReadyAgentCount, 15);
+  assert.equal(status.sharedProjectMemory.loaded, true);
+  assert.equal(status.sharedProjectMemory.files.length, 10);
 
   const missingTokenRouter = createAiRouter({
     tokenProvider: () => "",
@@ -297,4 +321,18 @@ test("AI API is protected and chat persists task, history, and log", async () =>
   assert.equal(collections.get("tasks").documents[0].data.status, "completed");
   assert.equal(collections.get("history").documents.length, 1);
   assert.equal(collections.get("logs").documents.length, 1);
+  for (const file of [
+    "architecture_memory.json",
+    "project_memory.json",
+    "integration_memory.json",
+    "business_memory.json",
+    "roadmap_memory.json",
+    "marketplace_memory.json",
+    "partner_memory.json",
+    "supplier_memory.json",
+    "domain_memory.json",
+    "prompt_memory.json",
+  ]) {
+    assert.ok(chatMessages[0].content.includes(file), `${file} was not loaded`);
+  }
 });

@@ -1,6 +1,7 @@
 import { connection, NextResponse } from "next/server";
 import type { ProductModel } from "../../../lib/models/product";
 import { getCollection } from "../../../lib/server/database";
+import { handleFoundationCollection } from "../../../lib/server/foundation-api";
 
 const catalogLimit = 50;
 
@@ -49,4 +50,8 @@ export async function GET() {
       },
     },
   );
+}
+
+export async function POST(request: Request) {
+  return handleFoundationCollection(request, "products");
 }

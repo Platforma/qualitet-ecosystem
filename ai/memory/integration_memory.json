@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-02T10:15:19+01:00",
+  "updatedAt": "2026-11-04T22:23:31+01:00",
   "integrations": {
     "mongodb": {
       "purpose": "Application data and durable AI memory.",
@@ -11,7 +11,7 @@
       "purpose": "Local model inference and optional embeddings.",
       "configuration": ["OLLAMA_URL", "OLLAMA_MODEL", "OLLAMA_EMBEDDING_MODEL", "OLLAMA_TIMEOUT_MS"],
       "memoryPersistence": "Memory is stored in MongoDB; Ollama is the inference runtime, not the durable store.",
-      "status": "Not verified. backend/services/ollama.service.js is empty in the current worktree, while backend/routes/ai.routes.js imports its methods."
+      "status": "Klient Ollama jest zaimplementowany, a test backendu przechodzi; live endpoint i model nie są zweryfikowane bez zmiennych i usługi produkcyjnej."
     },
     "stripe": {
       "status": "Integration provider is referenced in the admin configuration; a working supplier-acquisition payment flow is not verified."
@@ -63,11 +63,13 @@
       "PATCH|DELETE /api/ai/memory/{section}/{key}",
       "POST /api/ai/chat"
     ],
-    "verification": "The code and tests define the API; live MongoDB/Ollama availability is not confirmed."
+    "sharedProjectMemory": {
+      "source": "10 versioned JSON snapshots under ai/memory",
+      "consumer": "backend/routes/ai.routes.js includes all snapshots in each agent system context",
+      "agentRegistry": "ai/memory/AGENT_REGISTRY.json enables all 15 agents; GET /api/ai/status reports prompt readiness"
+    },
+    "verification": "Backend tests validate routing and shared snapshot loading; live MongoDB/Ollama availability is not confirmed."
   },
-  "repositoryIssues": [
-    "backend/package.json is empty in the current worktree; backend npm scripts and dependencies cannot be relied on until restored.",
-    "The main Ollama service source is empty in the current worktree; no environment-specific duplicate is treated as authoritative."
-  ],
+  "repositoryIssues": [],
   "secretsPolicy": "Never store actual environment values, credentials, bearer tokens, connection strings or private keys in memory JSON."
 }

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-02T10:15:19+01:00",
+  "updatedAt": "2026-11-04T22:23:31+01:00",
   "monthlyTargets": {
     "companies": 100,
     "products": 1000,
@@ -22,6 +22,8 @@
     "Mobile-first Owner Control Center pages: setup, integrations, checklist, system and automation",
     "Owner-only encrypted MongoDB integration settings, provider TEST actions and Render TEST/DEPLOY",
     "Owner host root directs authenticated users to the setup checklist",
+    "15 registry-enabled AI agents with role-specific routing and prompts",
+    "All 10 shared project memory snapshots loaded into every AI chat context",
     "ESLint, TypeScript, and webpack production build"
   ],
   "inProgressOrNotVerified": [
@@ -44,7 +46,7 @@
     "Implement authenticated cart APIs and order creation with product price revalidation and ownership checks.",
     "Build mobile-first cart and order pages before adding Stripe checkout and verified webhooks.",
     "Configure MongoDB URI and database in a secure deployment environment; never commit secrets.",
-    "Restore/verify backend Ollama client and backend package manifest before claiming AI integration works.",
+    "Configure AI_API_TOKEN, MONGODB_URI, OLLAMA_URL and OLLAMA_MODEL securely in production; verify GET /api/ai/status and live model health.",
     "Run backend AI foundation tests after restoring its package/test command.",
     "Exercise supplier registration, owner approval, assigned account, product publishing and imports against test MongoDB.",
     "Implement storage-backed logo upload with MIME/size validation.",
