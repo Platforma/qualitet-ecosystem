@@ -1,0 +1,212 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 800" width="1280" height="800" font-family="Segoe UI, Inter, Arial, sans-serif" role="img" aria-label="Henryk Command Center — ekran dashboardu">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b1220"/>
+      <stop offset="1" stop-color="#0f172a"/>
+    </linearGradient>
+    <linearGradient id="area" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#38bdf8" stop-opacity=".34"/>
+      <stop offset="1" stop-color="#38bdf8" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="mark" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#38bdf8"/>
+      <stop offset="1" stop-color="#2563eb"/>
+    </linearGradient>
+    <linearGradient id="line" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#38bdf8"/>
+      <stop offset="1" stop-color="#818cf8"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1280" height="800" fill="url(#bg)"/>
+
+  <!-- Sidebar -->
+  <rect width="220" height="800" fill="#0a1120"/>
+  <line x1="220" y1="0" x2="220" y2="800" stroke="rgba(148,163,184,.12)"/>
+
+  <rect x="20" y="24" width="36" height="36" rx="10" fill="url(#mark)"/>
+  <text x="38" y="49" font-size="20" font-weight="700" fill="#06111f" text-anchor="middle">Q</text>
+  <text x="68" y="44" font-size="13.5" font-weight="700" letter-spacing="1.4" fill="#e6edf7">QUALITET</text>
+  <text x="68" y="60" font-size="10" fill="#64748b">Command Center</text>
+
+  <rect x="14" y="96" width="192" height="42" rx="10" fill="rgba(56,189,248,.10)"/>
+  <rect x="14" y="96" width="3" height="42" rx="1.5" fill="#38bdf8"/>
+
+  <g font-size="13" fill="#cbd5e1">
+    <rect x="32" y="108" width="18" height="18" rx="5" fill="none" stroke="#38bdf8" stroke-width="1.5"/>
+    <text x="62" y="123" font-weight="600" fill="#e6f7ff">Dashboard</text>
+
+    <path d="M40 160l2.4 5.6L48 168l-5.6 2.4L40 176l-2.4-5.6L32 168l5.6-2.4z" fill="none" stroke="#64748b" stroke-width="1.5" stroke-linejoin="round"/>
+    <text x="62" y="173">AI Center</text>
+
+    <path d="M41 211l7 12H34z" fill="none" stroke="#64748b" stroke-width="1.5" stroke-linejoin="round"/>
+    <text x="62" y="223">Alert Center</text>
+
+    <path d="M32 266l8-4.5 8 4.5-8 4.5z M32 272l8 4.5 8-4.5" fill="none" stroke="#64748b" stroke-width="1.5" stroke-linejoin="round"/>
+    <text x="62" y="273">Memory</text>
+
+    <path d="M35 321v-6 M40 321v-10 M45 321v-4 M32 321h16" fill="none" stroke="#64748b" stroke-width="1.5" stroke-linecap="round"/>
+    <text x="62" y="323">Business</text>
+
+    <circle cx="41" cy="372" r="8" fill="none" stroke="#64748b" stroke-width="1.5"/>
+    <path d="M33 372h16 M41 364c2.4 2.4 3.6 5.1 3.6 8s-1.2 5.6-3.6 8c-2.4-2.4-3.6-5.1-3.6-8s1.2-5.6 3.6-8z" fill="none" stroke="#64748b" stroke-width="1.5"/>
+    <text x="62" y="373">World</text>
+
+    <path d="M37 421a4 4 0 0 0 5.7 0l1.7-1.7a4 4 0 0 0-5.7-5.7l-.9.9 M45 423a4 4 0 0 0-5.7 0l-1.7 1.7a4 4 0 0 0 5.7 5.7l.9-.9" fill="none" stroke="#64748b" stroke-width="1.5" stroke-linecap="round"/>
+    <text x="62" y="423">Integrations</text>
+  </g>
+
+  <rect x="14" y="700" width="192" height="64" rx="12" fill="rgba(148,163,184,.06)" stroke="rgba(148,163,184,.14)"/>
+  <circle cx="44" cy="732" r="16" fill="#1e293b" stroke="rgba(148,163,184,.24)"/>
+  <text x="44" y="737" font-size="13" font-weight="700" fill="#cbd5e1" text-anchor="middle">H</text>
+  <text x="70" y="728" font-size="12.5" font-weight="600" fill="#e6edf7">Henryk</text>
+  <text x="70" y="744" font-size="10.5" fill="#64748b">Owner</text>
+  <circle cx="186" cy="724" r="4" fill="#22c55e"/>
+
+  <!-- Topbar -->
+  <line x1="220" y1="70" x2="1280" y2="70" stroke="rgba(148,163,184,.10)"/>
+  <text x="252" y="42" font-size="12" fill="#64748b">Command Center <tspan fill="#475569">/</tspan> <tspan fill="#cbd5e1">Dashboard</tspan></text>
+
+  <rect x="860" y="24" width="280" height="34" rx="17" fill="#0d1729" stroke="rgba(148,163,184,.16)"/>
+  <circle cx="883" cy="40" r="5.5" fill="none" stroke="#64748b" stroke-width="1.5"/>
+  <path d="M887 44l3 3" stroke="#64748b" stroke-width="1.5" stroke-linecap="round"/>
+  <text x="900" y="45" font-size="11.5" fill="#64748b">Szukaj w platformie…</text>
+
+  <rect x="1156" y="26" width="30" height="30" rx="9" fill="rgba(148,163,184,.06)" stroke="rgba(148,163,184,.14)"/>
+  <path d="M1166 40a5 5 0 0 1 10 0v3l1.6 2.6h-13.2L1166 43z" fill="none" stroke="#94a3b8" stroke-width="1.4" stroke-linejoin="round"/>
+  <circle cx="1220" cy="41" r="17" fill="url(#mark)"/>
+  <text x="1220" y="46" font-size="13" font-weight="700" fill="#06111f" text-anchor="middle">H</text>
+
+  <!-- Heading -->
+  <text x="252" y="126" font-size="26" font-weight="700" fill="#e6edf7">Dashboard</text>
+  <text x="252" y="148" font-size="12.5" fill="#7c8ba1">Stan platformy w czasie rzeczywistym</text>
+  <rect x="1056" y="104" width="188" height="30" rx="15" fill="rgba(148,163,184,.07)" stroke="rgba(148,163,184,.16)"/>
+  <text x="1150" y="124" font-size="11.5" fill="#94a3b8" text-anchor="middle">Ostatnie 30 dni</text>
+
+  <!-- KPI cards -->
+  <g>
+    <rect x="252" y="176" width="236" height="112" rx="14" fill="#101a2c" stroke="rgba(148,163,184,.14)"/>
+    <text x="270" y="206" font-size="11.5" letter-spacing=".8" fill="#7c8ba1">PROJECT SCORE</text>
+    <text x="270" y="248" font-size="27" font-weight="700" fill="#e6edf7">100/100</text>
+    <text x="270" y="272" font-size="11.5" fill="#22c55e">+12% / 30 dni</text>
+    <polyline points="386,262 400,252 414,256 428,242 442,246 456,230 470,234" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity=".75"/>
+
+    <rect x="502" y="176" width="236" height="112" rx="14" fill="#101a2c" stroke="rgba(148,163,184,.14)"/>
+    <text x="520" y="206" font-size="11.5" letter-spacing=".8" fill="#7c8ba1">PRZYCHÓD DZIŚ</text>
+    <text x="520" y="248" font-size="27" font-weight="700" fill="#e6edf7">12 480 zł</text>
+    <text x="520" y="272" font-size="11.5" fill="#22c55e">+8,2% / dziś</text>
+    <polyline points="636,260 650,248 664,254 678,238 692,244 706,226 720,232" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity=".75"/>
+
+    <rect x="752" y="176" width="236" height="112" rx="14" fill="#101a2c" stroke="rgba(148,163,184,.14)"/>
+    <text x="770" y="206" font-size="11.5" letter-spacing=".8" fill="#7c8ba1">UŻYTKOWNICY</text>
+    <text x="770" y="248" font-size="27" font-weight="700" fill="#e6edf7">1 284</text>
+    <text x="770" y="272" font-size="11.5" fill="#22c55e">+124 / tydzień</text>
+    <polyline points="886,258 900,250 914,252 928,240 942,246 956,232 970,228" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity=".75"/>
+
+    <rect x="1002" y="176" width="236" height="112" rx="14" fill="#101a2c" stroke="rgba(148,163,184,.14)"/>
+    <text x="1020" y="206" font-size="11.5" letter-spacing=".8" fill="#7c8ba1">ALERTY</text>
+    <text x="1020" y="248" font-size="27" font-weight="700" fill="#e6edf7">0</text>
+    <text x="1020" y="272" font-size="11.5" fill="#22c55e">Wszystko stabilne</text>
+    <polyline points="1136,258 1150,258 1164,258 1178,258 1192,258 1206,258 1220,258" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity=".6"/>
+  </g>
+
+  <!-- Revenue chart -->
+  <rect x="252" y="308" width="636" height="272" rx="16" fill="#101a2c" stroke="rgba(148,163,184,.14)"/>
+  <text x="276" y="342" font-size="14.5" font-weight="600" fill="#e6edf7">Przychód</text>
+  <text x="276" y="360" font-size="11" fill="#7c8ba1">Ostatnie 30 dni</text>
+  <circle cx="700" cy="336" r="4" fill="#22c55e"/>
+  <text x="710" y="340" font-size="11" fill="#94a3b8">Sprzedaż</text>
+  <circle cx="790" cy="336" r="4" fill="#38bdf8"/>
+  <text x="800" y="340" font-size="11" fill="#94a3b8">Prognoza</text>
+
+  <g stroke="rgba(148,163,184,.09)">
+    <line x1="276" y1="396" x2="864" y2="396"/>
+    <line x1="276" y1="432" x2="864" y2="432"/>
+    <line x1="276" y1="468" x2="864" y2="468"/>
+    <line x1="276" y1="504" x2="864" y2="504"/>
+    <line x1="276" y1="540" x2="864" y2="540"/>
+  </g>
+
+  <path d="M276 528 C310 516 330 520 360 508 C390 496 410 502 440 488 C470 474 490 482 520 466 C550 450 570 458 600 444 C630 430 650 438 680 426 C710 414 730 422 760 408 C790 396 810 404 840 396 C852 393 858 394 864 392 L864 540 L276 540 Z" fill="url(#area)"/>
+  <path d="M276 528 C310 516 330 520 360 508 C390 496 410 502 440 488 C470 474 490 482 520 466 C550 450 570 458 600 444 C630 430 650 438 680 426 C710 414 730 422 760 408 C790 396 810 404 840 396 C852 393 858 394 864 392" fill="none" stroke="url(#line)" stroke-width="2.5" stroke-linecap="round"/>
+  <circle cx="864" cy="392" r="5" fill="#38bdf8" stroke="#0b1220" stroke-width="3"/>
+
+  <!-- AI agents -->
+  <rect x="908" y="308" width="336" height="272" rx="16" fill="#101a2c" stroke="rgba(148,163,184,.14)"/>
+  <text x="932" y="342" font-size="14.5" font-weight="600" fill="#e6edf7">Agenci AI</text>
+  <text x="932" y="360" font-size="11" fill="#7c8ba1">Status w czasie rzeczywistym</text>
+
+  <g font-size="12.5" fill="#cbd5e1">
+    <circle cx="938" cy="392" r="4" fill="#22c55e"/>
+    <text x="952" y="396">AI_QUALITET</text>
+    <text x="1216" y="396" font-size="11" fill="#22c55e" text-anchor="end">online</text>
+
+    <circle cx="938" cy="430" r="4" fill="#22c55e"/>
+    <text x="952" y="434">AI_DEVELOPER</text>
+    <text x="1216" y="434" font-size="11" fill="#22c55e" text-anchor="end">online</text>
+
+    <circle cx="938" cy="468" r="4" fill="#22c55e"/>
+    <text x="952" y="472">AI_GRAFIK_SZEF</text>
+    <text x="1216" y="472" font-size="11" fill="#22c55e" text-anchor="end">online</text>
+
+    <circle cx="938" cy="506" r="4" fill="#22c55e"/>
+    <text x="952" y="510">AI_MARKETING</text>
+    <text x="1216" y="510" font-size="11" fill="#22c55e" text-anchor="end">online</text>
+
+    <circle cx="938" cy="544" r="4" fill="#22c55e"/>
+    <text x="952" y="548">AI_SEO</text>
+    <text x="1216" y="548" font-size="11" fill="#22c55e" text-anchor="end">online</text>
+  </g>
+
+  <!-- Integrations -->
+  <rect x="252" y="600" width="636" height="164" rx="16" fill="#101a2c" stroke="rgba(148,163,184,.14)"/>
+  <text x="276" y="634" font-size="14" font-weight="600" fill="#e6edf7">Integracje</text>
+
+  <g font-size="11" fill="#cbd5e1">
+    <rect x="276" y="652" width="104" height="32" rx="16" fill="rgba(148,163,184,.06)" stroke="rgba(148,163,184,.14)"/>
+    <circle cx="292" cy="668" r="3.5" fill="#22c55e"/>
+    <text x="302" y="672">Cloudflare</text>
+
+    <rect x="390" y="652" width="92" height="32" rx="16" fill="rgba(148,163,184,.06)" stroke="rgba(148,163,184,.14)"/>
+    <circle cx="406" cy="668" r="3.5" fill="#22c55e"/>
+    <text x="416" y="672">MongoDB</text>
+
+    <rect x="492" y="652" width="78" height="32" rx="16" fill="rgba(148,163,184,.06)" stroke="rgba(148,163,184,.14)"/>
+    <circle cx="508" cy="668" r="3.5" fill="#22c55e"/>
+    <text x="518" y="672">Render</text>
+
+    <rect x="580" y="652" width="78" height="32" rx="16" fill="rgba(148,163,184,.06)" stroke="rgba(148,163,184,.14)"/>
+    <circle cx="596" cy="668" r="3.5" fill="#22c55e"/>
+    <text x="606" y="672">GitHub</text>
+
+    <rect x="276" y="696" width="72" height="32" rx="16" fill="rgba(148,163,184,.06)" stroke="rgba(148,163,184,.14)"/>
+    <circle cx="292" cy="712" r="3.5" fill="#22c55e"/>
+    <text x="302" y="716">Stripe</text>
+
+    <rect x="358" y="696" width="84" height="32" rx="16" fill="rgba(148,163,184,.06)" stroke="rgba(148,163,184,.14)"/>
+    <circle cx="374" cy="712" r="3.5" fill="#22c55e"/>
+    <text x="384" y="716">Discord</text>
+
+    <rect x="452" y="696" width="80" height="32" rx="16" fill="rgba(148,163,184,.06)" stroke="rgba(148,163,184,.14)"/>
+    <circle cx="468" cy="712" r="3.5" fill="#22c55e"/>
+    <text x="478" y="716">Ollama</text>
+  </g>
+
+  <!-- Recent events -->
+  <rect x="908" y="600" width="336" height="164" rx="16" fill="#101a2c" stroke="rgba(148,163,184,.14)"/>
+  <text x="932" y="634" font-size="14" font-weight="600" fill="#e6edf7">Ostatnie zdarzenia</text>
+
+  <g font-size="11.5" fill="#cbd5e1">
+    <circle cx="938" cy="660" r="3.5" fill="#38bdf8"/>
+    <text x="950" y="664">Backup bazy zakończony</text>
+    <text x="1216" y="664" font-size="10" fill="#64748b" text-anchor="end">2 min temu</text>
+
+    <circle cx="938" cy="692" r="3.5" fill="#22c55e"/>
+    <text x="950" y="696">AI_SEO opublikował raport</text>
+    <text x="1216" y="696" font-size="10" fill="#64748b" text-anchor="end">18 min temu</text>
+
+    <circle cx="938" cy="724" r="3.5" fill="#f59e0b"/>
+    <text x="950" y="728">Nowe połączenie: Stripe</text>
+    <text x="1216" y="728" font-size="10" fill="#64748b" text-anchor="end">1 godz. temu</text>
+  </g>
+</svg>
