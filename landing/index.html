@@ -36,7 +36,13 @@
   <section class="hero">
     <div class="wrap hero-inner">
       <div class="hero-copy">
-        <p class="eyebrow"><span class="pulse" aria-hidden="true"></span> Platforma biznesowa · AI-native</p>
+        <div class="hero-eyebrow-row">
+          <p class="eyebrow"><span class="pulse" aria-hidden="true"></span> Platforma biznesowa · AI-native</p>
+          <span class="verified-pill">
+            <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.6" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="m5 8.3 2 2 4-4.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Qualitet Verified
+          </span>
+        </div>
         <h1>Cały biznes pod kontrolą.<br><span class="grad">W jednym panelu.</span></h1>
         <p class="lead">Qualitet łączy agentów AI, sprzedaż, alerty i pamięć projektu w jedno centrum dowodzenia — i pilnuje go 24 godziny na dobę.</p>
 
@@ -44,6 +50,12 @@
           <a class="btn btn-primary" href="/dashboard">Wejdź do Command Center</a>
           <a class="btn btn-ghost" href="#funkcje">Zobacz funkcje</a>
         </div>
+
+        <ul class="hero-checks">
+          <li><span aria-hidden="true">✓</span>Start bez firmy</li>
+          <li><span aria-hidden="true">✓</span>Bez znajomości SEO i reklam</li>
+          <li><span aria-hidden="true">✓</span>Prowadzimy Cię krok po kroku</li>
+        </ul>
 
         <dl class="hero-stats">
           <div>
@@ -71,6 +83,7 @@
           </div>
           <img src="/assets/app-preview.svg" alt="Podgląd panelu Henryk Command Center: karty Project Score, przychodu, użytkowników i alertów oraz status agentów AI" width="1280" height="800">
         </div>
+        <img class="hero-seal" src="/assets/qualitet-seal.svg" alt="Pieczęć jakości Qualitet" width="132" height="132">
       </figure>
     </div>
   </section>
@@ -135,6 +148,32 @@
     </div>
   </section>
 
+  <section class="section" id="historia">
+    <div class="wrap">
+      <div class="story">
+        <div class="story-copy">
+          <p class="eyebrow">Moja historia</p>
+          <h2>Zaczynamy wspólnie.</h2>
+          <blockquote class="story-quote">„Przez lata budowałem wiedzę i rozwiązania, które teraz pracują dla Ciebie. Nie musisz zaczynać od zera — dostajesz gotowe SEO, AI, sklep, landing page, reklamy i wsparcie krok po kroku.”</blockquote>
+          <ul class="story-tags">
+            <li>SEO</li>
+            <li>AI</li>
+            <li>Sklep</li>
+            <li>Landing Page</li>
+            <li>Reklamy</li>
+            <li>Pomoc</li>
+          </ul>
+          <p class="story-sign">Henryk · założyciel Qualitet</p>
+        </div>
+        <aside class="story-card">
+          <img src="/assets/qualitet-seal.svg" alt="Pieczęć jakości Qualitet" width="132" height="132">
+          <p class="story-card-title">Qualitet Verified</p>
+          <p>Pieczęć jakości Qualitet — każdy materiał platformy powstaje według tych samych zasad.</p>
+        </aside>
+      </div>
+    </div>
+  </section>
+
   <section class="section section-alt" id="jak-dziala">
     <div class="wrap">
       <header class="section-head">
@@ -172,13 +211,13 @@
       </header>
 
       <ul class="chips">
-        <li class="chip"><span class="chip-dot" aria-hidden="true"></span>Cloudflare</li>
-        <li class="chip"><span class="chip-dot" aria-hidden="true"></span>MongoDB</li>
-        <li class="chip"><span class="chip-dot" aria-hidden="true"></span>Render</li>
-        <li class="chip"><span class="chip-dot" aria-hidden="true"></span>GitHub</li>
-        <li class="chip"><span class="chip-dot" aria-hidden="true"></span>Stripe</li>
-        <li class="chip"><span class="chip-dot" aria-hidden="true"></span>Discord</li>
-        <li class="chip"><span class="chip-dot" aria-hidden="true"></span>Ollama</li>
+        <li class="chip"><span class="chip-logo" style="--brand:#f38020" aria-hidden="true">C</span>Cloudflare<span class="chip-dot" aria-hidden="true"></span></li>
+        <li class="chip"><span class="chip-logo" style="--brand:#47a248" aria-hidden="true">M</span>MongoDB<span class="chip-dot" aria-hidden="true"></span></li>
+        <li class="chip"><span class="chip-logo" style="--brand:#46e3b7" aria-hidden="true">R</span>Render<span class="chip-dot" aria-hidden="true"></span></li>
+        <li class="chip"><span class="chip-logo" style="--brand:#e6edf7" aria-hidden="true">G</span>GitHub<span class="chip-dot" aria-hidden="true"></span></li>
+        <li class="chip"><span class="chip-logo" style="--brand:#635bff" aria-hidden="true">S</span>Stripe<span class="chip-dot" aria-hidden="true"></span></li>
+        <li class="chip"><span class="chip-logo" style="--brand:#5865f2" aria-hidden="true">D</span>Discord<span class="chip-dot" aria-hidden="true"></span></li>
+        <li class="chip"><span class="chip-logo" style="--brand:#f8fafc" aria-hidden="true">O</span>Ollama<span class="chip-dot" aria-hidden="true"></span></li>
       </ul>
     </div>
   </section>
@@ -197,12 +236,17 @@
 
 <footer class="site-footer">
   <div class="wrap footer-inner">
-    <p>© 2026 Qualitet · qualitet-market.com</p>
+    <div class="footer-brand">
+      <img src="/assets/qualitet-logo.svg" alt="Qualitet — Henryk Command Center" width="196" height="44">
+      <p>© 2026 Qualitet · qualitet-market.com</p>
+    </div>
     <nav aria-label="Stopka">
       <a href="/dashboard">Panel</a>
       <a href="#funkcje">Funkcje</a>
+      <a href="#historia">Historia</a>
       <a href="#integracje">Integracje</a>
     </nav>
+    <p class="footer-verified"><span class="chip-dot" aria-hidden="true"></span>Qualitet Verified</p>
   </div>
 </footer>
 </body>
